@@ -1,66 +1,98 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import NoiseMeter from './components/NoiseMeter';
 import Leaderboard from './components/Leaderboard';
 import Analytics from './components/Analytics';
+import Dashboard from './components/Dashboard';
+import Rewards from './components/Rewards';
+import Reports from './components/Reports';
+import Settings from './components/Settings';
+import Contact from './components/Contact';
 import './App.css';
 
 const TABS = [
   { id: 0, label: 'Live Monitor', emoji: '⚡' },
-  { id: 1, label: 'Leaderboard', emoji: '🏆' },
-  { id: 2, label: 'Analytics', emoji: '📊' },
+  { id: 1, label: 'Leaderboard',  emoji: '🏆' },
+  { id: 2, label: 'Analytics',    emoji: '📊' },
+  { id: 3, label: 'Dashboard',    emoji: '🏫' },
+  { id: 4, label: 'Rewards',      emoji: '🎖️' },
+  { id: 5, label: 'Reports',      emoji: '📋' },
+  { id: 6, label: 'Settings',     emoji: '⚙️' },
+  { id: 7, label: 'Contact',      emoji: '📬' },
 ];
 
+// ── Traffic-light + AI logo ──
 function LogoIcon() {
   return (
-    <svg width="46" height="46" viewBox="0 0 46 46" fill="none">
+    <svg width="28" height="58" viewBox="0 0 28 58" fill="none">
       <defs>
-        <linearGradient id="lg1" x1="0" y1="0" x2="46" y2="46" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00E5B4" />
-          <stop offset="1" stopColor="#00CFFF" />
+        <filter id="tlgr"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="tlgy"><feGaussianBlur stdDeviation="3"   result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="tlgg"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id="tlHousing" x1="0" y1="0" x2="0" y2="58" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#0D1929"/>
+          <stop offset="1" stopColor="#070D18"/>
         </linearGradient>
-        <linearGradient id="lg2" x1="46" y1="0" x2="0" y2="46" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00E5B4" stopOpacity="0.6" />
-          <stop offset="1" stopColor="#00CFFF" stopOpacity="0.3" />
-        </linearGradient>
-        <filter id="lf">
-          <feGaussianBlur stdDeviation="1.2" result="b" />
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
       </defs>
 
-      {/* Corner L-brackets — targeting / precision aesthetic */}
-      <path d="M4 14 L4 4 L14 4" stroke="url(#lg1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M32 4 L42 4 L42 14" stroke="url(#lg1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M4 32 L4 42 L14 42" stroke="url(#lg1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M32 42 L42 42 L42 32" stroke="url(#lg1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Housing */}
+      <rect x="2" y="1" width="24" height="56" rx="12" fill="url(#tlHousing)" stroke="rgba(0,229,180,0.22)" strokeWidth="1.2"/>
 
-      {/* Slowly rotating outer dashed ring */}
-      <circle cx="23" cy="23" r="18" stroke="rgba(0,229,180,0.22)"
-        strokeWidth="1" strokeDasharray="5 3.2" className="logo-spin" />
+      {/* Corner brackets */}
+      <path d="M2 9 L2 1 L10 1"  stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18 1 L26 1 L26 9" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2 49 L2 57 L10 57" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18 57 L26 57 L26 49" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
 
-      {/* Faster counter-rotating inner scan ring */}
-      <circle cx="23" cy="23" r="13" stroke="rgba(0,207,255,0.15)"
-        strokeWidth="0.7" strokeDasharray="3 5" className="logo-scan" />
+      {/* Scan line */}
+      <rect x="2" y="28" width="24" height="0.8" fill="rgba(0,229,180,0.12)" className="tl-scan"/>
 
-      {/* Hex body */}
-      <path d="M23 8 L34.2 14.5 L34.2 31.5 L23 38 L11.8 31.5 L11.8 14.5 Z"
-        fill="rgba(0,229,180,0.06)"
-        stroke="url(#lg2)"
-        strokeWidth="1.6"/>
+      {/* Red light */}
+      <circle cx="14" cy="12" r="7"   fill="rgba(255,71,87,0.12)"  stroke="rgba(255,71,87,0.25)"  strokeWidth="0.5"/>
+      <circle cx="14" cy="12" r="5.2" fill="#FF4757" className="tl-red"    filter="url(#tlgr)"/>
 
-      {/* EQ bars — all anchored at bottom y=30 */}
-      <g filter="url(#lf)">
-        <rect x="15"   y="24" width="2.4" height="6"  rx="1.2" fill="#00E5B4"  className="logo-b1"/>
-        <rect x="19"   y="20" width="2.4" height="10" rx="1.2" fill="#00CFFF"  className="logo-b2"/>
-        <rect x="23"   y="16" width="2.4" height="14" rx="1.2" fill="#00E5B4"  className="logo-b3"/>
-        <rect x="27"   y="20" width="2.4" height="10" rx="1.2" fill="#00CFFF"  className="logo-b2"/>
-        <rect x="31"   y="24" width="2.4" height="6"  rx="1.2" fill="#00E5B4"  className="logo-b1"/>
-      </g>
+      {/* Yellow light */}
+      <circle cx="14" cy="29" r="7"   fill="rgba(255,217,61,0.12)" stroke="rgba(255,217,61,0.25)" strokeWidth="0.5"/>
+      <circle cx="14" cy="29" r="5.2" fill="#FFD93D" className="tl-yellow" filter="url(#tlgy)"/>
 
-      {/* Pulsing center dot */}
-      <circle cx="23" cy="23" r="1.8" fill="#00E5B4" filter="url(#lf)" className="logo-center"/>
+      {/* Green light */}
+      <circle cx="14" cy="46" r="7"   fill="rgba(46,213,115,0.12)" stroke="rgba(46,213,115,0.25)" strokeWidth="0.5"/>
+      <circle cx="14" cy="46" r="5.2" fill="#2ED573" className="tl-green"  filter="url(#tlgg)"/>
+
+      {/* Left circuit traces */}
+      <line x1="0" y1="12" x2="2" y2="12" stroke="rgba(255,71,87,0.5)"    strokeWidth="0.9"/>
+      <circle cx="-1" cy="12" r="1.2" fill="rgba(255,71,87,0.6)"    className="tl-dot-r"/>
+      <line x1="0" y1="29" x2="2" y2="29" stroke="rgba(255,217,61,0.5)"   strokeWidth="0.9"/>
+      <circle cx="-1" cy="29" r="1.2" fill="rgba(255,217,61,0.6)"   className="tl-dot-y"/>
+      <line x1="0" y1="46" x2="2" y2="46" stroke="rgba(46,213,115,0.5)"   strokeWidth="0.9"/>
+      <circle cx="-1" cy="46" r="1.2" fill="rgba(46,213,115,0.6)"   className="tl-dot-g"/>
+
+      {/* Right circuit traces */}
+      <line x1="26" y1="12" x2="29" y2="12" stroke="rgba(255,71,87,0.5)"  strokeWidth="0.9"/>
+      <circle cx="30" cy="12" r="1.2" fill="rgba(255,71,87,0.6)"    className="tl-dot-r"/>
+      <line x1="26" y1="29" x2="29" y2="29" stroke="rgba(255,217,61,0.5)" strokeWidth="0.9"/>
+      <circle cx="30" cy="29" r="1.2" fill="rgba(255,217,61,0.6)"   className="tl-dot-y"/>
+      <line x1="26" y1="46" x2="29" y2="46" stroke="rgba(46,213,115,0.5)" strokeWidth="0.9"/>
+      <circle cx="30" cy="46" r="1.2" fill="rgba(46,213,115,0.6)"   className="tl-dot-g"/>
     </svg>
+  );
+}
+
+function LiveClock() {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="header-clock">
+      <span className="header-clock-time">
+        {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </span>
+      <span className="header-clock-date">
+        {time.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
+      </span>
+    </div>
   );
 }
 
@@ -80,19 +112,15 @@ export default function App() {
       <div className="ambient-top" />
       <div className="ambient-br" />
 
-      <motion.header
-        className="app-header"
+      <motion.header className="app-header"
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
         <div className="header-inner">
-          <motion.div
-            className="logo-group"
+          <motion.div className="logo-group"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          >
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}>
             <span className="logo-icon">
               <LogoIcon />
             </span>
@@ -102,40 +130,34 @@ export default function App() {
             </div>
           </motion.div>
 
-          <motion.div
-            className="live-badge"
+          <motion.div className="header-right"
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="live-dot" />
-            LIVE
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}>
+            <LiveClock />
+            <div className="live-badge">
+              <span className="live-dot" />
+              LIVE
+            </div>
           </motion.div>
         </div>
       </motion.header>
 
-      <motion.nav
-        className="tab-nav"
+      <motion.nav className="tab-nav"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      >
+        transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}>
         <div className="tab-list">
           {TABS.map((tab) => (
-            <motion.button
-              key={tab.id}
+            <motion.button key={tab.id}
               className={`tab-btn${activeTab === tab.id ? ' active' : ''}`}
               onClick={() => handleTab(tab.id)}
-              whileTap={{ scale: 0.96 }}
-            >
+              whileTap={{ scale: 0.96 }}>
               <span className="tab-emoji">{tab.emoji}</span>
               <span className="tab-label">{tab.label}</span>
               {activeTab === tab.id && (
-                <motion.div
-                  className="tab-indicator"
-                  layoutId="tab-pill"
-                  transition={{ type: 'spring', stiffness: 480, damping: 38 }}
-                />
+                <motion.div className="tab-indicator" layoutId="tab-pill"
+                  transition={{ type: 'spring', stiffness: 480, damping: 38 }} />
               )}
             </motion.button>
           ))}
@@ -144,23 +166,23 @@ export default function App() {
 
       <main className="app-main">
         <AnimatePresence mode="wait" custom={dir}>
-          <motion.div
-            key={activeTab}
-            custom={dir}
+          <motion.div key={activeTab} custom={dir}
             variants={{
-              enter: (d) => ({ opacity: 0, x: d * 48, scale: 0.982, y: 8 }),
+              enter:  (d) => ({ opacity: 0, x: d * 40, scale: 0.984, y: 6 }),
               center: { opacity: 1, x: 0, scale: 1, y: 0 },
-              exit: (d) => ({ opacity: 0, x: d * -48, scale: 0.982, y: -8 }),
+              exit:   (d) => ({ opacity: 0, x: d * -40, scale: 0.984, y: -6 }),
             }}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{ width: '100%' }}
-          >
+            initial="enter" animate="center" exit="exit"
+            transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ width: '100%' }}>
             {activeTab === 0 && <NoiseMeter />}
             {activeTab === 1 && <Leaderboard />}
             {activeTab === 2 && <Analytics />}
+            {activeTab === 3 && <Dashboard />}
+            {activeTab === 4 && <Rewards />}
+            {activeTab === 5 && <Reports />}
+            {activeTab === 6 && <Settings />}
+            {activeTab === 7 && <Contact />}
           </motion.div>
         </AnimatePresence>
       </main>

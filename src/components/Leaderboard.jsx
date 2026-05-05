@@ -14,26 +14,26 @@ const CLASSES = [
 
 const WAKABA_ID = 1;
 
-// Shuffle array in-place (Fisher-Yates)
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+// Initial order: Wakaba at #1, rest in a fixed starting order
+const INITIAL_ORDER = [1, 3, 7, 2, 4, 8, 5, 6];
 
-// Build a rank order where Wakaba is #1 ~80% of the time, #2 ~20%
-function generateRankOrder() {
-  const others = shuffle(CLASSES.filter(c => c.id !== WAKABA_ID).map(c => c.id));
-  if (Math.random() < 0.80) {
-    // Wakaba at #1
-    return [WAKABA_ID, ...others];
+// Produce next order: toggle Wakaba #1↔#2 and do one adjacent swap in positions 2–7
+function nextOrder(current) {
+  const order = [...current];
+  const wakabaIdx = order.indexOf(WAKABA_ID);
+
+  // Toggle Wakaba between slot 0 and slot 1
+  if (wakabaIdx === 0) {
+    [order[0], order[1]] = [order[1], order[0]];
   } else {
-    // Wakaba at #2 — one random other briefly takes the top spot
-    return [others[0], WAKABA_ID, ...others.slice(1)];
+    [order[0], order[1]] = [order[1], order[0]];
   }
+
+  // One adjacent swap anywhere in slots 2–6
+  const i = 2 + Math.floor(Math.random() * 5);
+  [order[i], order[i + 1]] = [order[i + 1], order[i]];
+
+  return order;
 }
 
 function getNoise(db) {
@@ -73,7 +73,7 @@ function AnimatedBar({ pct, color, delay = 0 }) {
 }
 
 export default function Leaderboard() {
-  // ── Live dB simulation (independent of display order) ──
+  // Live dB simulation
   const [scores, setScores] = useState(() =>
     CLASSES.map((c) => ({ id: c.id, db: c.baseDb + (Math.random() - 0.5) * 6 }))
   );
@@ -91,16 +91,15 @@ export default function Leaderboard() {
     return () => clearInterval(id);
   }, []);
 
-  // ── Display rank order (Wakaba pinned near top, others shuffle) ──
-  const [rankOrder, setRankOrder] = useState(() => generateRankOrder());
+  // Rank order — shifts every 8–9 s with smooth adjacent swaps
+  const [rankOrder, setRankOrder] = useState(INITIAL_ORDER);
   const reshuffleRef = useRef(null);
 
   useEffect(() => {
     const schedule = () => {
-      // Reshuffle every 2–3 seconds
-      const delay = 2000 + Math.random() * 1000;
+      const delay = 8000 + Math.random() * 1000;
       reshuffleRef.current = setTimeout(() => {
-        setRankOrder(generateRankOrder());
+        setRankOrder((prev) => nextOrder(prev));
         schedule();
       }, delay);
     };
@@ -108,13 +107,12 @@ export default function Leaderboard() {
     return () => clearTimeout(reshuffleRef.current);
   }, []);
 
-  // ── Build the ordered list using rankOrder + live scores ──
   const ranked = useMemo(
     () => rankOrder.map((id) => scores.find((s) => s.id === id)),
     [rankOrder, scores]
   );
 
-  // ── Rank-change arrows ──
+  // Rank-change arrows
   const prevRankRef = useRef({});
   const [arrows, setArrows] = useState({});
 
@@ -129,7 +127,7 @@ export default function Leaderboard() {
     });
     setArrows(next);
     rankOrder.forEach((id, i) => { prevRankRef.current[id] = i + 1; });
-    const t = setTimeout(() => setArrows({}), 2000);
+    const t = setTimeout(() => setArrows({}), 3000);
     return () => clearTimeout(t);
   }, [rankOrder]);
 
@@ -160,7 +158,7 @@ export default function Leaderboard() {
                 layout
                 variants={cardVars}
                 className={`glass-card lb-card rank-${idx + 1}`}
-                transition={{ layout: { type: 'spring', stiffness: 280, damping: 26 } }}
+                transition={{ layout: { type: 'spring', stiffness: 180, damping: 28 } }}
                 whileHover={{
                   borderColor: idx === 0 ? 'rgba(255,215,0,0.45)' : 'rgba(0,229,180,0.22)',
                   transition: { duration: 0.2 },
@@ -207,7 +205,7 @@ export default function Leaderboard() {
                         initial={{ opacity: 0, y: arrow === 'up' ? 6 : -6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.4 }}
                       >
                         {arrow === 'up' ? '▲' : '▼'}
                       </motion.div>
