@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(cp -r /Users/la/classroom-warden/tmp/cw-temp/. /Users/la/classroom-warden/)",
+      "Bash(rm -rf /Users/la/classroom-warden/tmp)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:5173/src/main.jsx)",
+      "Bash(curl -s \"http://localhost:5173/@vite/client\")",
+      "Bash(curl -s http://localhost:5173/src/App.jsx)",
+      "Bash(npx vite *)",
+      "Bash(open *)",
+      "Bash(screencapture -x /tmp/cw-screenshot.png)",
+      "Bash(screencapture -x /tmp/cw2.png)",
+      "Bash(screencapture -x /tmp/cw3.png)",
+      "Bash(osascript -e 'tell application \"Safari\" to activate')",
+      "Bash(osascript -e 'tell application \"Google Chrome\" to activate')",
+      "Bash(screencapture -x /tmp/cw4.png)",
+      "Bash(osascript)",
+      "Bash(screencapture -x /tmp/cw_chrome.png)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(brew upgrade *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
