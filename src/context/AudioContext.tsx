@@ -1,3 +1,5 @@
+'use client';
+
 import React, {
   createContext,
   useCallback,
@@ -68,12 +70,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         volume: 0,
         preload: true,
         onloaderror: (_id, err) => {
-          console.warn(`[CalmAudioEngine] Failed to preload "${name}":`, err);
+          console.warn(`[WardenCalmEngine] Failed to preload "${name}":`, err);
         },
       });
     });
 
-    console.log('[CalmAudioEngine] Sound manifest pre-loaded');
+    console.log('[WardenCalmEngine] Sound manifest pre-loaded');
 
     return () => {
       if (ambientStopTimerRef.current) clearTimeout(ambientStopTimerRef.current);
@@ -116,7 +118,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ambient.volume(0);
     ambient.play();
     ambient.fade(0, targetVol, FADE_MS.ambientIn);
-    console.log('[CalmAudioEngine] Ambient loop started');
+    console.log('[WardenCalmEngine] Ambient loop started');
   }, [ambientEnabled]);
 
   const unlockAudio = useCallback(async () => {
@@ -129,13 +131,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       setAudioUnlocked(true);
       localStorage.setItem(`${CALM_AUDIO_STORAGE_KEY}-unlocked`, '1');
-      console.log('[CalmAudioEngine] Audio unlocked via user gesture');
+      console.log('[WardenCalmEngine] Audio unlocked via user gesture');
 
       if (ambientEnabled && !isMutedRef.current) {
         startAmbient();
       }
     } catch (err) {
-      console.warn('[CalmAudioEngine] Audio unlock failed:', err);
+      console.warn('[WardenCalmEngine] Audio unlock failed:', err);
     }
   }, [ambientEnabled, startAmbient]);
 

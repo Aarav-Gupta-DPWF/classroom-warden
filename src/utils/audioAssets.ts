@@ -16,7 +16,7 @@ export const FADE_MS = {
 } as const;
 
 export const VOLUME = {
-  defaultMaster: 0.4,
+  defaultMaster: 0.3,
   uiClick: 0.55,
   ambient: 0.35,
 } as const;

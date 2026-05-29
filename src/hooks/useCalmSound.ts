@@ -1,3 +1,5 @@
+'use client';
+
 import { useAudioEngine } from '../context/AudioContext';
 
 export const useCalmSound = () => {
