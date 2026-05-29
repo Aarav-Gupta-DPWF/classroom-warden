@@ -1024,3 +1024,62 @@
 .reports-table tr:last-child td { border-bottom: none; }
 .reports-table tbody tr:hover td { background: rgba(255,255,255,0.025); }
 .reports-status-pill { display: inline-block; border-radius: 10px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+
+/* ── Calm Audio consent gate ── */
+.audio-consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 11, 24, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.audio-consent-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 32px 28px;
+  text-align: center;
+  border: 1px solid rgba(0, 229, 180, 0.18);
+}
+
+.audio-consent-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.audio-consent-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e8eaf0;
+  margin: 0 0 10px;
+}
+
+.audio-consent-copy {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(232, 234, 240, 0.55);
+  margin: 0 0 22px;
+}
+
+.audio-consent-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #060b18;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00e5b4, #00cfff);
+  box-shadow: 0 0 28px rgba(0, 229, 180, 0.25);
+  transition: box-shadow 0.2s ease;
+}
+
+.audio-consent-btn:hover {
+  box-shadow: 0 0 36px rgba(0, 229, 180, 0.38);
+}

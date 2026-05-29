@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCalmSound } from '../hooks/useCalmSound';
 
 const R = 108, CX = 150, CY = 150;
 const CIRC = 2 * Math.PI * R;
@@ -255,9 +256,19 @@ const itemVars = {
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
 };
 
+function alertsEnabled() {
+  try {
+    const s = JSON.parse(localStorage.getItem('cw-settings') || '{}');
+    return s.alertsEnabled !== false;
+  } catch {
+    return true;
+  }
+}
+
 export default function NoiseMeter() {
   const mic = useMicAudio();
   const sim = useNoiseSim();
+  const { playTap, playWarning } = useCalmSound();
 
   const useMic = mic.micStatus === 'active';
   const db   = useMic ? mic.db   : sim.db;
@@ -265,11 +276,29 @@ export default function NoiseMeter() {
   const st   = getState(db);
 
   const dataRef = useRef({ samples: [42], peak: 42 });
+  const prevLabelRef = useRef(st.label);
+  const alertCooldownRef = useRef(0);
+
   useEffect(() => {
     dataRef.current.samples.push(db);
     if (dataRef.current.samples.length > 300) dataRef.current.samples.shift();
     if (db > dataRef.current.peak) dataRef.current.peak = db;
   }, [db]);
+
+  useEffect(() => {
+    const label = getState(db).label;
+    const now = Date.now();
+    if (
+      label === 'LOUD' &&
+      prevLabelRef.current !== 'LOUD' &&
+      alertsEnabled() &&
+      now - alertCooldownRef.current > 8000
+    ) {
+      playWarning();
+      alertCooldownRef.current = now;
+    }
+    prevLabelRef.current = label;
+  }, [db, playWarning]);
 
   const avg = Math.round(
     dataRef.current.samples.reduce((a, b) => a + b, 0) / dataRef.current.samples.length
@@ -291,7 +320,7 @@ export default function NoiseMeter() {
           <span>{statusCfg.text}</span>
           {mic.micStatus === 'active' && <span className="mic-live-dot" style={{ background: '#2ED573' }} />}
           {mic.micStatus === 'denied' && (
-            <button className="mic-retry-btn" onClick={mic.retry}>Retry</button>
+            <button className="mic-retry-btn" onClick={() => { playTap(); mic.retry(); }}>Retry</button>
           )}
         </div>
       </motion.div>

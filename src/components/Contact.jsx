@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCalmSound } from '../hooks/useCalmSound';
 
 const containerVars = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } };
 const itemVars = {
@@ -38,6 +39,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const { playTap, playSuccess } = useCalmSound();
 
   const validate = () => {
     const e = {};
@@ -52,6 +54,7 @@ export default function Contact() {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+    playSuccess();
     setSubmitted(true);
     setErrors({});
   };
@@ -121,7 +124,7 @@ export default function Contact() {
               <div className="contact-thanks-icon">✅</div>
               <div className="contact-thanks-title">Message Received!</div>
               <div className="contact-thanks-sub">Thank you, {form.name}! We'll get back to you soon at {form.email}.</div>
-              <motion.button className="contact-btn" onClick={() => { setSubmitted(false); setForm({ name: '', email: '', message: '' }); }}
+              <motion.button className="contact-btn" onClick={() => { playTap(); setSubmitted(false); setForm({ name: '', email: '', message: '' }); }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 Send Another
               </motion.button>

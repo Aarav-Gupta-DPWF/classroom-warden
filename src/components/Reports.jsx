@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCalmSound } from '../hooks/useCalmSound';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -168,11 +169,14 @@ const itemVars = {
 
 export default function Reports() {
   const [downloading, setDownloading] = useState(false);
+  const { playTap, playSuccess } = useCalmSound();
 
   const handleDownload = () => {
+    playTap();
     setDownloading(true);
     setTimeout(() => {
       generatePDF();
+      playSuccess();
       setDownloading(false);
     }, 600);
   };

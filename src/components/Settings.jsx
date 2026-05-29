@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAudioEngine } from '../context/AudioContext';
+import { useCalmSound } from '../hooks/useCalmSound';
 
 const CLASSES = [
   { id: 1, name: 'Room 8A', teacher: 'Mr. Wakaba' },
@@ -34,12 +36,15 @@ const itemVars = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
 };
 
-function Toggle({ value, onChange, color = '#00E5B4' }) {
+function Toggle({ value, onChange, color = '#00E5B4', onToggle }) {
   return (
     <motion.button
       className={`settings-toggle${value ? ' on' : ''}`}
       style={{ '--toggle-color': color }}
-      onClick={() => onChange(!value)}
+      onClick={() => {
+        onToggle?.();
+        onChange(!value);
+      }}
       whileTap={{ scale: 0.93 }}>
       <motion.div className="toggle-thumb" layout transition={{ type: 'spring', stiffness: 500, damping: 30 }} />
     </motion.button>
@@ -87,16 +92,22 @@ function Row({ label, hint, children }) {
 export default function Settings() {
   const [s, setS] = useState(loadSettings);
   const [saved, setSaved] = useState(false);
+  const { isMuted, masterVolume, ambientEnabled, toggleMute, setVolume, setAmbientEnabled } = useAudioEngine();
+  const { playTap, playSuccess } = useCalmSound();
 
   const set = (key, val) => setS(prev => ({ ...prev, [key]: val }));
 
   const save = () => {
     localStorage.setItem('cw-settings', JSON.stringify(s));
+    playSuccess();
     setSaved(true);
     setTimeout(() => setSaved(false), 2200);
   };
 
-  const reset = () => { setS(DEFAULTS); };
+  const reset = () => {
+    playTap();
+    setS(DEFAULTS);
+  };
 
   return (
     <motion.div className="settings-page" variants={containerVars} initial="hidden" animate="show">
@@ -139,9 +150,22 @@ export default function Settings() {
         </Row>
       </Section>
 
+      <Section title="Calm Audio" icon="🎧">
+        <Row label="Mute all sounds" hint="Silence UI feedback and ambient background">
+          <Toggle value={isMuted} onChange={toggleMute} onToggle={playTap} color="#A78BFA" />
+        </Row>
+        <Row label="Background ambience" hint="Soft ambient loop after entering the dashboard">
+          <Toggle value={ambientEnabled} onChange={setAmbientEnabled} onToggle={playTap} />
+        </Row>
+        <Row label="Master volume" hint="Overall volume for calm audio cues">
+          <Slider value={Math.round(masterVolume * 100)} min={0} max={100}
+            onChange={v => setVolume(v / 100)} color="#00E5B4" format={v => `${v}%`} />
+        </Row>
+      </Section>
+
       <Section title="Sound Alerts" icon="🔔">
         <Row label="Enable alerts" hint="Play a sound when noise exceeds threshold">
-          <Toggle value={s.alertsEnabled} onChange={v => set('alertsEnabled', v)} />
+          <Toggle value={s.alertsEnabled} onChange={v => set('alertsEnabled', v)} onToggle={playTap} />
         </Row>
         <Row label="Alert volume" hint="Volume of the alert sound">
           <Slider value={s.alertVolume} min={0} max={100} onChange={v => set('alertVolume', v)}
@@ -158,7 +182,7 @@ export default function Settings() {
 
       <Section title="Appearance" icon="🎨">
         <Row label="Dark mode" hint="Currently only dark mode is fully supported">
-          <Toggle value={s.darkMode} onChange={v => set('darkMode', v)} color="#A78BFA" />
+          <Toggle value={s.darkMode} onChange={v => set('darkMode', v)} onToggle={playTap} color="#A78BFA" />
         </Row>
       </Section>
 

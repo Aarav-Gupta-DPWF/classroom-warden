@@ -8,6 +8,8 @@ import Rewards from './components/Rewards';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
 import Contact from './components/Contact';
+import AudioConsentGate from './components/AudioConsentGate';
+import { useCalmSound } from './hooks/useCalmSound';
 import './App.css';
 
 const TABS = [
@@ -99,8 +101,10 @@ function LiveClock() {
 export default function App() {
   const [activeTab, setActiveTab] = useState(0);
   const prevTabRef = useRef(0);
+  const { playTap } = useCalmSound();
 
   const handleTab = (id) => {
+    playTap();
     prevTabRef.current = activeTab;
     setActiveTab(id);
   };
@@ -109,6 +113,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <AudioConsentGate />
       <div className="ambient-top" />
       <div className="ambient-br" />
 

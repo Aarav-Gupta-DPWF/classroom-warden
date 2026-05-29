@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useCalmSound } from '../hooks/useCalmSound';
 
 const ACHIEVEMENTS = [
   { id: 'silence_master', icon: '🏆', name: 'Silence Master', desc: 'Maintain below 40 dB for 7 days', holder: 'Room 8A', progress: 100, unlocked: true,  color: '#FFD700' },
@@ -42,6 +43,8 @@ function fireCelebration() {
 }
 
 function BadgeCard({ ach, onUnlock }) {
+  const { playTap } = useCalmSound();
+
   return (
     <motion.div
       className={`glass-card reward-badge-card${ach.unlocked ? ' unlocked' : ''}`}
@@ -68,7 +71,7 @@ function BadgeCard({ ach, onUnlock }) {
         {ach.unlocked ? '✓ Unlocked' : `${ach.progress}% complete`}
       </div>
       {!ach.unlocked && ach.progress >= 80 && (
-        <motion.button className="reward-demo-btn" onClick={onUnlock}
+        <motion.button className="reward-demo-btn" onClick={() => { playTap(); onUnlock(); }}
           whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
           Preview Unlock 🎊
         </motion.button>
@@ -80,9 +83,11 @@ function BadgeCard({ ach, onUnlock }) {
 export default function Rewards() {
   const [achievements, setAchievements] = useState(ACHIEVEMENTS);
   const [unlocking, setUnlocking] = useState(null);
+  const { playTap, playSuccess } = useCalmSound();
 
   const handleUnlock = (id) => {
     fireCelebration();
+    playSuccess();
     setUnlocking(id);
     setTimeout(() => {
       setAchievements(prev => prev.map(a => a.id === id ? { ...a, unlocked: true, progress: 100 } : a));
