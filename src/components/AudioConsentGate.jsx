@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAudioEngine } from '../context/AudioContext';
+import { MotionButton } from './motion';
 
 export default function AudioConsentGate() {
   const { audioUnlocked, unlockAudio } = useAudioEngine();
@@ -30,15 +31,14 @@ export default function AudioConsentGate() {
           Gentle UI sounds and a soft ambient background help you stay focused.
           Tap below to enable audio — your browser requires a click first.
         </p>
-        <motion.button
+        <MotionButton
           type="button"
           className="audio-consent-btn"
+          playSoundOnClick={false}
           onClick={handleEnter}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
         >
           Enter Dashboard
-        </motion.button>
+        </MotionButton>
       </motion.div>
     </motion.div>
   );

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCalmSound } from '../hooks/useCalmSound';
+import { MotionButton } from './motion';
+import { SmoothCard } from './motion';
 
 const R = 108, CX = 150, CY = 150;
 const CIRC = 2 * Math.PI * R;
@@ -268,7 +270,7 @@ function alertsEnabled() {
 export default function NoiseMeter() {
   const mic = useMicAudio();
   const sim = useNoiseSim();
-  const { playTap, playWarning } = useCalmSound();
+  const { playWarning } = useCalmSound();
 
   const useMic = mic.micStatus === 'active';
   const db   = useMic ? mic.db   : sim.db;
@@ -320,7 +322,7 @@ export default function NoiseMeter() {
           <span>{statusCfg.text}</span>
           {mic.micStatus === 'active' && <span className="mic-live-dot" style={{ background: '#2ED573' }} />}
           {mic.micStatus === 'denied' && (
-            <button className="mic-retry-btn" onClick={() => { playTap(); mic.retry(); }}>Retry</button>
+            <MotionButton className="mic-retry-btn" onClick={mic.retry}>Retry</MotionButton>
           )}
         </div>
       </motion.div>
@@ -339,12 +341,13 @@ export default function NoiseMeter() {
           { label: 'Average',      value: `${avg} dB`,                              color: '#00E5B4' },
           { label: 'Session Peak', value: `${Math.round(dataRef.current.peak)} dB`, color: '#FFD93D' },
         ].map((s, i) => (
-          <motion.div key={s.label} className="glass-card stat-card"
+          <motion.div key={s.label}
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            whileHover={{ y: -3, transition: { duration: 0.2 } }}>
+            transition={{ delay: 0.3 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+          <SmoothCard className="glass-card stat-card">
             <div className="stat-label">{s.label}</div>
             <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
+          </SmoothCard>
           </motion.div>
         ))}
       </motion.div>

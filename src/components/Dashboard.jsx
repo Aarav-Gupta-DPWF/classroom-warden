@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { SmoothCard, StaggerContainer } from './motion';
+import { childItemVariants, containerStaggerVariants } from '../utils/motionVariants';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, LineChart, Line, Legend,
@@ -49,15 +51,14 @@ function useCountUp(target, duration = 1100, delay = 0) {
 function StatCard({ icon, label, value, suffix = '', color, delay, sub }) {
   const n = useCountUp(typeof value === 'number' ? value : 0, 1100, delay);
   return (
-    <motion.div className="glass-card dash-stat-card"
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+    <SmoothCard className="glass-card dash-stat-card">
       <span className="dash-stat-icon">{icon}</span>
       <div className="dash-stat-label">{label}</div>
       <div className="dash-stat-value" style={{ color }}>
         {typeof value === 'number' ? `${n}${suffix}` : value}
       </div>
       {sub && <div className="dash-stat-sub">{sub}</div>}
-    </motion.div>
+    </SmoothCard>
   );
 }
 
@@ -77,11 +78,8 @@ function ChartTip({ active, payload, label }) {
   );
 }
 
-const containerVars = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
-const itemVars = {
-  hidden: { opacity: 0, y: 22 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
+const containerVars = containerStaggerVariants;
+const itemVars = childItemVariants;
 
 const sorted = [...CLASSES].sort((a, b) => a.baseDb - b.baseDb);
 const chartData = CLASSES.map(c => ({ name: c.name.replace('Room ', ''), db: c.baseDb, color: c.baseDb < 45 ? '#2ED573' : c.baseDb < 65 ? '#FFA502' : '#FF4757' }));
@@ -92,22 +90,23 @@ export default function Dashboard() {
   const loudest   = sorted[sorted.length - 1];
 
   return (
-    <motion.div className="dashboard" variants={containerVars} initial="hidden" animate="show">
+    <motion.div className="dashboard transform-gpu" variants={containerVars} initial="initial" animate="animate">
       <motion.div className="section-header" variants={itemVars}>
         <h2 className="section-title">School Dashboard</h2>
         <p className="section-sub">Oshwal Academy Nairobi Junior High · Overview</p>
       </motion.div>
 
       {/* Overview stats */}
-      <motion.div className="dash-stats-grid" variants={containerVars}>
+      <StaggerContainer className="dash-stats-grid">
         <StatCard icon="🏫" label="Total Classes"   value={8}           color="#00E5B4"  delay={100} sub="Active this week" />
         <StatCard icon="📊" label="School Average"  value={schoolAvg}   suffix=" dB"    color="#A78BFA" delay={180} sub="vs 58 dB last month" />
         <StatCard icon="🥇" label="Quietest Class"  value={quietest.name} color="#2ED573" delay={0}  sub={`${quietest.baseDb} dB avg · ${quietest.teacher}`} />
         <StatCard icon="📢" label="Loudest Class"   value={loudest.name}  color="#FF4757" delay={0}  sub={`${loudest.baseDb} dB avg · ${loudest.teacher}`} />
-      </motion.div>
+      </StaggerContainer>
 
       {/* Class comparison bar chart */}
-      <motion.div className="glass-card chart-section" variants={itemVars}>
+      <motion.div variants={itemVars}>
+      <SmoothCard className="glass-card chart-section">
         <div className="chart-header">
           <div className="chart-title">Class Noise Comparison</div>
           <div className="chart-subtitle">Average dB levels across all 8 classrooms</div>
@@ -133,10 +132,12 @@ export default function Dashboard() {
               cell={chartData.map((d, i) => <cell key={i} fill={`url(#bar-${i})`} />)} />
           </BarChart>
         </ResponsiveContainer>
+      </SmoothCard>
       </motion.div>
 
       {/* Weekly trend */}
-      <motion.div className="glass-card chart-section" variants={itemVars}>
+      <motion.div variants={itemVars}>
+      <SmoothCard className="glass-card chart-section">
         <div className="chart-header">
           <div className="chart-title">This Week · School Average Trend</div>
           <div className="chart-subtitle">Daily average noise vs. 55 dB target</div>
@@ -154,10 +155,12 @@ export default function Dashboard() {
               isAnimationActive animationDuration={1200} />
           </LineChart>
         </ResponsiveContainer>
+      </SmoothCard>
       </motion.div>
 
       {/* Teacher rankings */}
-      <motion.div className="glass-card dash-rankings" variants={itemVars}>
+      <motion.div variants={itemVars}>
+      <SmoothCard className="glass-card dash-rankings">
         <div className="chart-header">
           <div className="chart-title">Teacher Performance Rankings</div>
           <div className="chart-subtitle">Sorted by classroom noise management</div>
@@ -189,6 +192,7 @@ export default function Dashboard() {
             );
           })}
         </div>
+      </SmoothCard>
       </motion.div>
     </motion.div>
   );

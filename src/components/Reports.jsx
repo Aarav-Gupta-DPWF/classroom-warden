@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCalmSound } from '../hooks/useCalmSound';
+import { MotionButton } from './motion';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -169,10 +170,9 @@ const itemVars = {
 
 export default function Reports() {
   const [downloading, setDownloading] = useState(false);
-  const { playTap, playSuccess } = useCalmSound();
+  const { playSuccess } = useCalmSound();
 
   const handleDownload = () => {
-    playTap();
     setDownloading(true);
     setTimeout(() => {
       generatePDF();
@@ -191,15 +191,15 @@ export default function Reports() {
           <h2 className="section-title">Reports</h2>
           <p className="section-sub">Monthly noise summary · Oshwal Academy Nairobi Junior High</p>
         </div>
-        <motion.button className="report-download-btn" onClick={handleDownload} disabled={downloading}
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+        <MotionButton className="report-download-btn" onClick={handleDownload} disabled={downloading}
+          playSoundOnClick={!downloading}>
           <AnimatePresence mode="wait">
             {downloading
               ? <motion.span key="dl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>⏳ Generating…</motion.span>
               : <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>⬇ Download PDF</motion.span>
             }
           </AnimatePresence>
-        </motion.button>
+        </MotionButton>
       </motion.div>
 
       {/* Report preview card */}

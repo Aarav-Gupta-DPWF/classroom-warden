@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAudioEngine } from '../context/AudioContext';
 import { useCalmSound } from '../hooks/useCalmSound';
+import { MotionButton, SmoothCard } from './motion';
 
 const CLASSES = [
   { id: 1, name: 'Room 8A', teacher: 'Mr. Wakaba' },
@@ -67,12 +68,14 @@ function Slider({ value, min, max, step = 1, onChange, color = '#00E5B4', format
 
 function Section({ title, icon, children }) {
   return (
-    <motion.div className="glass-card settings-section" variants={itemVars}>
+    <motion.div variants={itemVars}>
+    <SmoothCard className="glass-card settings-section">
       <div className="settings-section-header">
         <span className="settings-section-icon">{icon}</span>
         <span className="settings-section-title">{title}</span>
       </div>
       {children}
+    </SmoothCard>
     </motion.div>
   );
 }
@@ -105,7 +108,6 @@ export default function Settings() {
   };
 
   const reset = () => {
-    playTap();
     setS(DEFAULTS);
   };
 
@@ -187,19 +189,17 @@ export default function Settings() {
       </Section>
 
       <motion.div className="settings-actions" variants={itemVars}>
-        <motion.button className="settings-reset-btn" onClick={reset}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+        <MotionButton className="settings-reset-btn" onClick={reset}>
           Reset to Defaults
-        </motion.button>
-        <motion.button className="settings-save-btn" onClick={save}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+        </MotionButton>
+        <MotionButton className="settings-save-btn" playSoundOnClick={false} onClick={save}>
           <AnimatePresence mode="wait">
             {saved
               ? <motion.span key="saved" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>✓ Saved!</motion.span>
               : <motion.span key="save"  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>Save Settings</motion.span>
             }
           </AnimatePresence>
-        </motion.button>
+        </MotionButton>
       </motion.div>
     </motion.div>
   );

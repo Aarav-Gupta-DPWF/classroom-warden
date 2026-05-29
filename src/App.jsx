@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { PageTransition, MotionButton } from './components/motion';
+import { calmSpring } from './utils/motionVariants';
 import NoiseMeter from './components/NoiseMeter';
 import Leaderboard from './components/Leaderboard';
 import Analytics from './components/Analytics';
@@ -9,7 +11,6 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import Contact from './components/Contact';
 import AudioConsentGate from './components/AudioConsentGate';
-import { useCalmSound } from './hooks/useCalmSound';
 import './App.css';
 
 const TABS = [
@@ -101,15 +102,10 @@ function LiveClock() {
 export default function App() {
   const [activeTab, setActiveTab] = useState(0);
   const prevTabRef = useRef(0);
-  const { playTap } = useCalmSound();
-
   const handleTab = (id) => {
-    playTap();
     prevTabRef.current = activeTab;
     setActiveTab(id);
   };
-
-  const dir = activeTab > prevTabRef.current ? 1 : -1;
 
   return (
     <div className="app-shell">
@@ -154,32 +150,23 @@ export default function App() {
         transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}>
         <div className="tab-list">
           {TABS.map((tab) => (
-            <motion.button key={tab.id}
+            <MotionButton key={tab.id}
               className={`tab-btn${activeTab === tab.id ? ' active' : ''}`}
-              onClick={() => handleTab(tab.id)}
-              whileTap={{ scale: 0.96 }}>
+              onClick={() => handleTab(tab.id)}>
               <span className="tab-emoji">{tab.emoji}</span>
               <span className="tab-label">{tab.label}</span>
               {activeTab === tab.id && (
                 <motion.div className="tab-indicator" layoutId="tab-pill"
-                  transition={{ type: 'spring', stiffness: 480, damping: 38 }} />
+                  transition={calmSpring} />
               )}
-            </motion.button>
+            </MotionButton>
           ))}
         </div>
       </motion.nav>
 
-      <main className="app-main">
-        <AnimatePresence mode="wait" custom={dir}>
-          <motion.div key={activeTab} custom={dir}
-            variants={{
-              enter:  (d) => ({ opacity: 0, x: d * 40, scale: 0.984, y: 6 }),
-              center: { opacity: 1, x: 0, scale: 1, y: 0 },
-              exit:   (d) => ({ opacity: 0, x: d * -40, scale: 0.984, y: -6 }),
-            }}
-            initial="enter" animate="center" exit="exit"
-            transition={{ duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{ width: '100%' }}>
+      <main className="app-main transform-gpu">
+        <AnimatePresence mode="wait">
+          <PageTransition key={activeTab}>
             {activeTab === 0 && <NoiseMeter />}
             {activeTab === 1 && <Leaderboard />}
             {activeTab === 2 && <Analytics />}
@@ -188,7 +175,7 @@ export default function App() {
             {activeTab === 5 && <Reports />}
             {activeTab === 6 && <Settings />}
             {activeTab === 7 && <Contact />}
-          </motion.div>
+          </PageTransition>
         </AnimatePresence>
       </main>
     </div>
