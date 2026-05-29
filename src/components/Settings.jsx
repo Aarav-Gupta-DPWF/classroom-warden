@@ -95,7 +95,7 @@ function Row({ label, hint, children }) {
 export default function Settings() {
   const [s, setS] = useState(loadSettings);
   const [saved, setSaved] = useState(false);
-  const { isMuted, masterVolume, ambientEnabled, toggleMute, setVolume, setAmbientEnabled } = useAudioEngine();
+  const { isMuted, masterVolume, ambientEnabled, toggleMute, setVolume, setAmbientEnabled, unlockAudio } = useAudioEngine();
   const { playTap, playSuccess } = useCalmSound();
 
   const set = (key, val) => setS(prev => ({ ...prev, [key]: val }));
@@ -162,6 +162,11 @@ export default function Settings() {
         <Row label="Master volume" hint="Overall volume for calm audio cues">
           <Slider value={Math.round(masterVolume * 100)} min={0} max={100}
             onChange={v => setVolume(v / 100)} color="#00E5B4" format={v => `${v}%`} />
+        </Row>
+        <Row label="Test sound" hint="Play a sample tap to confirm audio works">
+          <MotionButton className="settings-test-audio-btn" onClick={() => void unlockAudio()}>
+            Play test chime
+          </MotionButton>
         </Row>
       </Section>
 

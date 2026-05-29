@@ -11,18 +11,18 @@ export const calmEase = [0.22, 1, 0.36, 1] as const;
 export const calmExitEase = [0.64, 0, 0.78, 0] as const;
 
 export const pageFadeVariants: Variants = {
-  initial: { opacity: 0, y: 8, filter: 'blur(4px)' },
+  initial: { opacity: 0, y: 14, filter: 'blur(8px)' },
   animate: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.4, ease: calmEase },
+    transition: { duration: 0.45, ease: calmEase },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    filter: 'blur(4px)',
-    transition: { duration: 0.25, ease: calmExitEase },
+    y: -10,
+    filter: 'blur(6px)',
+    transition: { duration: 0.3, ease: calmExitEase },
   },
 };
 

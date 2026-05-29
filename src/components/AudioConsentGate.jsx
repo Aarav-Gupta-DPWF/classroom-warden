@@ -8,7 +8,9 @@ export default function AudioConsentGate() {
   if (audioUnlocked) return null;
 
   const handleEnter = () => {
-    void unlockAudio();
+    void unlockAudio().then(() => {
+      console.log('[WardenCalmEngine] Dashboard entered — sounds enabled');
+    });
   };
 
   return (

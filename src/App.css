@@ -869,6 +869,17 @@
 }
 .settings-save-btn:hover { background: linear-gradient(135deg, rgba(0,229,180,0.32), rgba(0,207,255,0.25)); box-shadow: 0 0 20px rgba(0,229,180,0.2); }
 
+.settings-test-audio-btn {
+  background: rgba(0, 229, 180, 0.1);
+  border: 1px solid rgba(0, 229, 180, 0.3);
+  color: #00e5b4;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ═══════════════════════════════════════
    CONTACT
 ═══════════════════════════════════════ */
@@ -1082,4 +1093,43 @@
 
 .audio-consent-btn:hover {
   box-shadow: 0 0 36px rgba(0, 229, 180, 0.38);
+}
+
+/* Warden Calm Engine status */
+.warden-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: rgba(232, 234, 240, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.warden-engine-badge.active {
+  color: #00e5b4;
+  border-color: rgba(0, 229, 180, 0.35);
+  background: rgba(0, 229, 180, 0.08);
+}
+
+.warden-engine-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(232, 234, 240, 0.35);
+}
+
+.warden-engine-badge.active .warden-engine-dot {
+  background: #00e5b4;
+  box-shadow: 0 0 8px rgba(0, 229, 180, 0.7);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.warden-engine-amb {
+  color: rgba(0, 229, 180, 0.65);
+  font-weight: 500;
 }

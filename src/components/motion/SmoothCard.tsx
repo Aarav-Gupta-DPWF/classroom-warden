@@ -15,9 +15,10 @@ export function SmoothCard({ children, className }: SmoothCardProps) {
     <motion.div
       className={cn(GPU_CLASS, className)}
       whileHover={{
-        y: -3,
-        boxShadow: '0 20px 35px -12px rgba(0, 0, 0, 0.25)',
-        borderColor: 'rgba(255, 255, 255, 0.12)',
+        y: -5,
+        scale: 1.008,
+        boxShadow: '0 24px 40px -14px rgba(0, 229, 180, 0.12)',
+        borderColor: 'rgba(0, 229, 180, 0.22)',
       }}
       transition={calmSpring}
     >

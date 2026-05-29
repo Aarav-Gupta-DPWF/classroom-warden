@@ -1,8 +1,9 @@
+/** Logical sound ids — rendered by Web Audio synth (see calmAudioSynth.ts). */
 export const SOUND_MANIFEST = {
-  ambientLoop: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav',
-  uiClick: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-84.wav',
-  successChime: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav',
-  alertSoft: 'https://assets.mixkit.co/active_storage/sfx/911/911-84.wav',
+  ambientLoop: 'ambient',
+  uiClick: 'uiClick',
+  successChime: 'successChime',
+  alertSoft: 'alertSoft',
 } as const;
 
 export type SoundName = keyof typeof SOUND_MANIFEST;

@@ -11,6 +11,7 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import Contact from './components/Contact';
 import AudioConsentGate from './components/AudioConsentGate';
+import WardenEngineBadge from './components/WardenEngineBadge';
 import './App.css';
 
 const TABS = [
@@ -136,6 +137,7 @@ export default function App() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}>
             <LiveClock />
+            <WardenEngineBadge />
             <div className="live-badge">
               <span className="live-dot" />
               LIVE
