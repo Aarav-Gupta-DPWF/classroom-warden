@@ -1,16 +1,47 @@
-# React + Vite
+# Classroom Warden
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Live noise intelligence console for schools — with a cinematic landing page, calm audio/motion engine, and real account sign-up.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Open **http://localhost:5173/** — you'll see the marketing landing page. Sign up, then launch the Warden Console.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Real sign-up (production)
 
-## Expanding the ESLint configuration
+1. Create a free project at [supabase.com](https://supabase.com).
+2. Copy `.env.example` to `.env` and set:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. In Supabase → **Authentication** → enable Email provider.
+4. Run `supabase/schema.sql` in the SQL Editor (optional profiles table).
+5. Restart `npm run dev`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Without `.env`, accounts are stored **locally in the browser** (works for demos, not shared across devices).
+
+## Routes
+
+| Path | Description |
+|------|-------------|
+| `/` | Landing page — sign in / sign up |
+| `/console` | Protected dashboard (requires login) |
+
+## Stack
+
+- React 19 + Vite
+- Framer Motion (WardenCalmEngine)
+- Web Audio UI sounds
+- Supabase Auth (or local fallback)
+- React Router
+
+## Deploy
+
+```bash
+npm run build
+```
+
+Set the same `VITE_*` env vars in Vercel project settings before deploying.
