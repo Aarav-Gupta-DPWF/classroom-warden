@@ -17,7 +17,7 @@ export default function App() {
           }
         />
         <Route path="/console" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/welcome" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/" state={{ auth: 'required', from: location.pathname }} replace />;
+    return <Navigate to="/welcome" state={{ auth: 'required', from: location.pathname }} replace />;
   }
 
   return children;
