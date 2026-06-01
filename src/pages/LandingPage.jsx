@@ -3,8 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import ConstellationBg from '../components/landing/ConstellationBg';
-import ShieldLogo from '../components/landing/ShieldLogo';
+import TrafficLightLogo from '../components/TrafficLightLogo';
 import AuthModal from '../components/landing/AuthModal';
+import LandingAuthSection from '../components/landing/LandingAuthSection';
 import { MotionButton } from '../components/motion';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 import '../styles/Landing.css';
@@ -71,7 +72,7 @@ export default function LandingPage() {
 
       <header className="landing-nav">
         <a href="/welcome" className="landing-brand">
-          <ShieldLogo />
+          <TrafficLightLogo height={36} className="landing-brand-logo" />
           <span>Classroom Warden</span>
         </a>
         <nav className="landing-links">
@@ -85,13 +86,22 @@ export default function LandingPage() {
               Open Console
             </MotionButton>
           ) : (
-            <MotionButton
-              className="landing-btn-signin"
-              playSoundOnClick={false}
-              onClick={() => openAuth('signin')}
-            >
-              Sign In
-            </MotionButton>
+            <>
+              <MotionButton
+                className="landing-btn-signin landing-btn-ghost"
+                playSoundOnClick={false}
+                onClick={() => openAuth('signin')}
+              >
+                Sign In
+              </MotionButton>
+              <MotionButton
+                className="landing-btn-signin"
+                playSoundOnClick={false}
+                onClick={() => openAuth('signup')}
+              >
+                Sign Up
+              </MotionButton>
+            </>
           )}
         </div>
       </header>
@@ -146,6 +156,8 @@ export default function LandingPage() {
         </motion.div>
       </main>
 
+      {!user && <LandingAuthSection onSuccess={handleAuthSuccess} />}
+
       <section id="modules" className="landing-section">
         <h2 className="landing-section-title">Modules</h2>
         <div className="landing-modules-grid">
@@ -173,14 +185,18 @@ export default function LandingPage() {
           calm motion and audio designed for focused classrooms.
         </p>
         {!user && (
-          <MotionButton className="landing-btn-primary landing-btn-inline" playSoundOnClick={false} onClick={() => openAuth('signup')}>
+          <MotionButton
+            className="landing-btn-primary landing-btn-inline"
+            playSoundOnClick={false}
+            onClick={() => document.getElementById('access')?.scrollIntoView({ behavior: 'smooth' })}
+          >
             Sign up free →
           </MotionButton>
         )}
       </section>
 
       <footer className="landing-footer">
-        <ShieldLogo size={18} />
+        <TrafficLightLogo height={20} />
         <span>© {new Date().getFullYear()} Classroom Warden</span>
       </footer>
 

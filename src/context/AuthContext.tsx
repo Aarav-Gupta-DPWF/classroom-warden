@@ -38,6 +38,7 @@ interface AuthContextValue {
     school: string;
   }) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'yahoo') => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -143,6 +144,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [authMode],
   );
 
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'github' | 'yahoo') => {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error(
+        'Social sign-in requires Supabase. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, or use email below.',
+      );
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    } as Parameters<NonNullable<typeof supabase>['auth']['signInWithOAuth']>[0]);
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     if (authMode === 'supabase' && supabase) {
       await supabase.auth.signOut();
@@ -162,9 +179,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isConfigured: true,
       signUp,
       signIn,
+      signInWithOAuth,
       signOut,
     }),
-    [user, session, loading, authMode, signUp, signIn, signOut],
+    [user, session, loading, authMode, signUp, signIn, signInWithOAuth, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -48,12 +48,27 @@
 .landing-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: #fff;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.2px;
+}
+
+.landing-brand-logo {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 180, 0.35));
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.landing-btn-ghost {
+  background: transparent !important;
 }
 
 .landing-links {
@@ -277,11 +292,239 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   padding: 32px;
   font-size: 12px;
   color: rgba(232, 234, 240, 0.35);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Landing auth section ── */
+.landing-auth-section {
+  position: relative;
+  z-index: 5;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.landing-auth-card {
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 229, 180, 0.18);
+  background: rgba(8, 14, 28, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.landing-auth-card-header {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+.landing-auth-card-header h2 {
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+
+.landing-auth-card-header p {
+  font-size: 13px;
+  color: rgba(232, 234, 240, 0.45);
+  line-height: 1.45;
+}
+
+.landing-auth-logo {
+  flex-shrink: 0;
+}
+
+.landing-auth-oauth {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.landing-oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8eaf0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.landing-oauth-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.landing-oauth-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.landing-oauth-icon {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.oauth-google .landing-oauth-icon {
+  background: #fff;
+  color: #1a1a1a;
+}
+
+.oauth-github .landing-oauth-icon {
+  background: #24292f;
+  color: #fff;
+}
+
+.oauth-yahoo .landing-oauth-icon {
+  background: #6001d2;
+  color: #fff;
+}
+
+.landing-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 18px;
+  color: rgba(232, 234, 240, 0.35);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.landing-auth-divider::before,
+.landing-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.landing-auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.landing-auth-tabs button {
+  padding: 9px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(232, 234, 240, 0.45);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.landing-auth-tabs button.active {
+  background: rgba(0, 229, 180, 0.12);
+  color: #00e5b4;
+  box-shadow: 0 0 0 1px rgba(0, 229, 180, 0.25);
+}
+
+.landing-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.landing-auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 234, 240, 0.55);
+}
+
+.landing-auth-form input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #e8eaf0;
+  font-size: 14px;
+}
+
+.landing-auth-form input:focus {
+  outline: none;
+  border-color: rgba(0, 229, 180, 0.45);
+}
+
+.landing-auth-error {
+  color: #ff6b7a;
+  font-size: 13px;
+  margin: 0;
+}
+
+.landing-auth-success {
+  color: #34d399;
+  font-size: 13px;
+  margin: 0;
+}
+
+.landing-auth-submit {
+  margin-top: 4px;
+  background: linear-gradient(135deg, rgba(0, 229, 180, 0.25), rgba(34, 211, 238, 0.15));
+  border: 1px solid rgba(0, 229, 180, 0.4);
+  color: #00e5b4;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.landing-auth-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.landing-auth-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(232, 234, 240, 0.35);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.auth-modal-oauth {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.auth-modal-oauth-btn {
+  padding: 10px 8px !important;
+  font-size: 12px !important;
+}
+
+.auth-modal-divider {
+  margin-bottom: 16px;
 }
 
 /* Auth modal */
@@ -299,7 +542,7 @@
 
 .auth-modal {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: rgba(10, 16, 30, 0.98);
   border: 1px solid rgba(0, 229, 180, 0.2);
   border-radius: 20px;
@@ -407,5 +650,13 @@
 @media (max-width: 768px) {
   .landing-links {
     display: none;
+  }
+
+  .landing-nav-actions .landing-btn-ghost {
+    display: none;
+  }
+
+  .auth-modal-oauth {
+    grid-template-columns: 1fr;
   }
 }

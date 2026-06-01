@@ -8,13 +8,17 @@ export default function WardenEngineBadge() {
   const on = !isMuted;
 
   return (
-    <div
-      className={`warden-engine-badge${on ? ' active' : ''}`}
-      title={on ? 'Warden Calm Engine — audio on' : 'Audio muted'}
-    >
-      <span className="warden-engine-dot" />
-      {on ? 'Calm Audio' : 'Muted'}
-      {on && ambientEnabled && <span className="warden-engine-amb"> · Ambient</span>}
+    <div className="warden-engine-group">
+      <div
+        className={`warden-engine-badge${on ? ' active' : ''}`}
+        title={on ? 'Warden Calm Engine — audio on' : 'Audio muted'}
+      >
+        <span className="warden-engine-dot" />
+        <span className="warden-engine-label">{on ? 'Calm Audio' : 'Muted'}</span>
+      </div>
+      {on && ambientEnabled && (
+        <span className="warden-engine-ambient-pill">Ambient</span>
+      )}
     </div>
   );
 }

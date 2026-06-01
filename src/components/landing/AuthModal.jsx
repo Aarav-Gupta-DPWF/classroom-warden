@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
-import ShieldLogo from './ShieldLogo';
+import TrafficLightLogo from '../TrafficLightLogo';
 
-export default function AuthModal({ open, mode, onClose, onSuccess, initialMode = 'signup' }) {
-  const { signUp, signIn, authMode } = useAuth();
+const OAUTH_PROVIDERS = [
+  { id: 'google', label: 'Google', brandClass: 'oauth-google' },
+  { id: 'github', label: 'GitHub', brandClass: 'oauth-github' },
+  { id: 'yahoo', label: 'Yahoo', brandClass: 'oauth-yahoo' },
+];
+
+export default function AuthModal({ open, onClose, onSuccess, initialMode = 'signup' }) {
+  const { signUp, signIn, signInWithOAuth, authMode } = useAuth();
   const [view, setView] = useState(initialMode);
   const [fullName, setFullName] = useState('');
   const [school, setSchool] = useState('');
@@ -14,11 +20,10 @@ export default function AuthModal({ open, mode, onClose, onSuccess, initialMode 
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(null);
 
   const reset = () => {
     setError('');
-    setMessage('');
   };
 
   const validate = () => {
@@ -47,6 +52,18 @@ export default function AuthModal({ open, mode, onClose, onSuccess, initialMode 
     return true;
   };
 
+  const handleOAuth = async (provider) => {
+    reset();
+    setOauthLoading(provider);
+    try {
+      await signInWithOAuth(provider);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start social sign-in.');
+    } finally {
+      setOauthLoading(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     reset();
@@ -56,7 +73,7 @@ export default function AuthModal({ open, mode, onClose, onSuccess, initialMode 
       if (view === 'signup') {
         await signUp({ email, password, fullName, school });
         if (authMode === 'supabase' && isSupabaseConfigured) {
-          setMessage('Account created! Check your email to confirm, then sign in.');
+          setError('');
           setView('signin');
         } else {
           onSuccess?.();
@@ -94,18 +111,36 @@ export default function AuthModal({ open, mode, onClose, onSuccess, initialMode 
           onClick={(e) => e.stopPropagation()}
         >
           <div className="auth-modal-header">
-            <ShieldLogo size={28} />
+            <TrafficLightLogo height={32} />
             <div>
               <h2>{view === 'signup' ? 'Create your account' : 'Welcome back'}</h2>
               <p>
                 {authMode === 'supabase'
                   ? 'Secure cloud accounts powered by Supabase'
-                  : 'Local accounts (add Supabase env for production)'}
+                  : 'Local accounts on this device'}
               </p>
             </div>
             <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close">
               ×
             </button>
+          </div>
+
+          <div className="auth-modal-oauth">
+            {OAUTH_PROVIDERS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={`landing-oauth-btn ${p.brandClass} auth-modal-oauth-btn`}
+                disabled={oauthLoading !== null}
+                onClick={() => void handleOAuth(p.id)}
+              >
+                {oauthLoading === p.id ? '…' : p.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="landing-auth-divider auth-modal-divider">
+            <span>or use email</span>
           </div>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
@@ -165,7 +200,6 @@ export default function AuthModal({ open, mode, onClose, onSuccess, initialMode 
             )}
 
             {error && <p className="auth-modal-error">{error}</p>}
-            {message && <p className="auth-modal-success">{message}</p>}
 
             <button type="submit" className="auth-modal-submit" disabled={loading}>
               {loading ? 'Please wait…' : view === 'signup' ? 'Create account' : 'Sign in'}

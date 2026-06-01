@@ -12,6 +12,7 @@ import Settings from '../components/Settings';
 import Contact from '../components/Contact';
 import AudioConsentGate from '../components/AudioConsentGate';
 import WardenEngineBadge from '../components/WardenEngineBadge';
+import TrafficLightLogo from '../components/TrafficLightLogo';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../App.css';
@@ -26,63 +27,6 @@ const TABS = [
   { id: 6, label: 'Settings',     emoji: '⚙️' },
   { id: 7, label: 'Contact',      emoji: '📬' },
 ];
-
-// ── Traffic-light + AI logo ──
-function LogoIcon() {
-  return (
-    <svg width="28" height="58" viewBox="0 0 28 58" fill="none">
-      <defs>
-        <filter id="tlgr"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="tlgy"><feGaussianBlur stdDeviation="3"   result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="tlgg"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <linearGradient id="tlHousing" x1="0" y1="0" x2="0" y2="58" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0D1929"/>
-          <stop offset="1" stopColor="#070D18"/>
-        </linearGradient>
-      </defs>
-
-      {/* Housing */}
-      <rect x="2" y="1" width="24" height="56" rx="12" fill="url(#tlHousing)" stroke="rgba(0,229,180,0.22)" strokeWidth="1.2"/>
-
-      {/* Corner brackets */}
-      <path d="M2 9 L2 1 L10 1"  stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M18 1 L26 1 L26 9" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M2 49 L2 57 L10 57" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M18 57 L26 57 L26 49" stroke="rgba(0,229,180,0.55)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-
-      {/* Scan line */}
-      <rect x="2" y="28" width="24" height="0.8" fill="rgba(0,229,180,0.12)" className="tl-scan"/>
-
-      {/* Red light */}
-      <circle cx="14" cy="12" r="7"   fill="rgba(255,71,87,0.12)"  stroke="rgba(255,71,87,0.25)"  strokeWidth="0.5"/>
-      <circle cx="14" cy="12" r="5.2" fill="#FF4757" className="tl-red"    filter="url(#tlgr)"/>
-
-      {/* Yellow light */}
-      <circle cx="14" cy="29" r="7"   fill="rgba(255,217,61,0.12)" stroke="rgba(255,217,61,0.25)" strokeWidth="0.5"/>
-      <circle cx="14" cy="29" r="5.2" fill="#FFD93D" className="tl-yellow" filter="url(#tlgy)"/>
-
-      {/* Green light */}
-      <circle cx="14" cy="46" r="7"   fill="rgba(46,213,115,0.12)" stroke="rgba(46,213,115,0.25)" strokeWidth="0.5"/>
-      <circle cx="14" cy="46" r="5.2" fill="#2ED573" className="tl-green"  filter="url(#tlgg)"/>
-
-      {/* Left circuit traces */}
-      <line x1="0" y1="12" x2="2" y2="12" stroke="rgba(255,71,87,0.5)"    strokeWidth="0.9"/>
-      <circle cx="-1" cy="12" r="1.2" fill="rgba(255,71,87,0.6)"    className="tl-dot-r"/>
-      <line x1="0" y1="29" x2="2" y2="29" stroke="rgba(255,217,61,0.5)"   strokeWidth="0.9"/>
-      <circle cx="-1" cy="29" r="1.2" fill="rgba(255,217,61,0.6)"   className="tl-dot-y"/>
-      <line x1="0" y1="46" x2="2" y2="46" stroke="rgba(46,213,115,0.5)"   strokeWidth="0.9"/>
-      <circle cx="-1" cy="46" r="1.2" fill="rgba(46,213,115,0.6)"   className="tl-dot-g"/>
-
-      {/* Right circuit traces */}
-      <line x1="26" y1="12" x2="29" y2="12" stroke="rgba(255,71,87,0.5)"  strokeWidth="0.9"/>
-      <circle cx="30" cy="12" r="1.2" fill="rgba(255,71,87,0.6)"    className="tl-dot-r"/>
-      <line x1="26" y1="29" x2="29" y2="29" stroke="rgba(255,217,61,0.5)" strokeWidth="0.9"/>
-      <circle cx="30" cy="29" r="1.2" fill="rgba(255,217,61,0.6)"   className="tl-dot-y"/>
-      <line x1="26" y1="46" x2="29" y2="46" stroke="rgba(46,213,115,0.5)" strokeWidth="0.9"/>
-      <circle cx="30" cy="46" r="1.2" fill="rgba(46,213,115,0.6)"   className="tl-dot-g"/>
-    </svg>
-  );
-}
 
 function LiveClock() {
   const [time, setTime] = useState(() => new Date());
@@ -128,7 +72,7 @@ export default function ConsoleApp() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}>
             <span className="logo-icon">
-              <LogoIcon />
+              <TrafficLightLogo height={58} />
             </span>
             <div>
               <h1 className="app-title">Classroom Warden</h1>
@@ -149,7 +93,11 @@ export default function ConsoleApp() {
                 onClick={() => void signOut().then(() => navigate('/welcome'))}
                 title="Sign out"
               >
-                {user.fullName.split(' ')[0]} · Sign out
+                <span className="console-user-avatar" aria-hidden>
+                  {user.fullName.trim().charAt(0).toUpperCase()}
+                </span>
+                <span className="console-user-name">{user.fullName.split(' ')[0]}</span>
+                <span className="console-user-action">Sign out</span>
               </button>
             )}
             <div className="live-badge">
