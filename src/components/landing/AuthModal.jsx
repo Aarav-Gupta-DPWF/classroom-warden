@@ -1,14 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
+import { OAUTH_PROVIDERS } from '../../lib/authProviders';
 import ClassroomWardenLogo from '../ClassroomWardenLogo';
-
-const OAUTH_PROVIDERS = [
-  { id: 'google', label: 'Google', brandClass: 'oauth-google' },
-  { id: 'github', label: 'GitHub', brandClass: 'oauth-github' },
-  { id: 'yahoo', label: 'Yahoo', brandClass: 'oauth-yahoo' },
-];
 
 export default function AuthModal({ open, onClose, onSuccess, initialMode = 'signup' }) {
   const { signUp, signIn, signInWithOAuth, authMode } = useAuth();
@@ -19,11 +14,21 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(null);
 
+  useEffect(() => {
+    if (open) {
+      setView(initialMode);
+      setError('');
+      setMessage('');
+    }
+  }, [open, initialMode]);
+
   const reset = () => {
     setError('');
+    setMessage('');
   };
 
   const validate = () => {
@@ -72,20 +77,21 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
     try {
       if (view === 'signup') {
         await signUp({ email, password, fullName, school });
-        if (authMode === 'supabase' && isSupabaseConfigured) {
-          setError('');
-          setView('signin');
-        } else {
-          onSuccess?.();
-          onClose();
-        }
+        onSuccess?.();
+        onClose();
       } else {
         await signIn(email, password);
         onSuccess?.();
         onClose();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Try again.';
+      if (msg.includes('confirm your account')) {
+        setMessage(msg);
+        setView('signin');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -116,8 +122,8 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
               <h2>{view === 'signup' ? 'Create your account' : 'Welcome back'}</h2>
               <p>
                 {authMode === 'supabase'
-                  ? 'Secure cloud accounts powered by Supabase'
-                  : 'Local accounts on this device'}
+                  ? 'Sign in with Google, GitHub, Apple, Yahoo, or email'
+                  : 'Add Supabase env vars to enable cloud sign-in'}
               </p>
             </div>
             <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close">
@@ -125,22 +131,25 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
             </button>
           </div>
 
-          <div className="auth-modal-oauth">
+          <div className="landing-auth-oauth auth-modal-oauth-stack">
             {OAUTH_PROVIDERS.map((p) => (
               <button
                 key={p.id}
                 type="button"
-                className={`landing-oauth-btn ${p.brandClass} auth-modal-oauth-btn`}
+                className={`landing-oauth-btn ${p.brandClass}`}
                 disabled={oauthLoading !== null}
                 onClick={() => void handleOAuth(p.id)}
               >
-                {oauthLoading === p.id ? '…' : p.label}
+                <span className="landing-oauth-icon" aria-hidden>
+                  {p.id === 'apple' ? '' : p.icon}
+                </span>
+                {oauthLoading === p.id ? 'Redirecting…' : p.label}
               </button>
             ))}
           </div>
 
           <div className="landing-auth-divider auth-modal-divider">
-            <span>or use email</span>
+            <span>or log in with email</span>
           </div>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
@@ -200,9 +209,10 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
             )}
 
             {error && <p className="auth-modal-error">{error}</p>}
+            {message && <p className="auth-modal-success">{message}</p>}
 
             <button type="submit" className="auth-modal-submit" disabled={loading}>
-              {loading ? 'Please wait…' : view === 'signup' ? 'Create account' : 'Sign in'}
+              {loading ? 'Please wait…' : view === 'signup' ? 'Create account' : 'Log in'}
             </button>
           </form>
 
@@ -211,7 +221,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
               <>
                 Already have an account?{' '}
                 <button type="button" onClick={() => { setView('signin'); reset(); }}>
-                  Sign in
+                  Log in
                 </button>
               </>
             ) : (
@@ -223,6 +233,12 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
               </>
             )}
           </p>
+
+          {!isSupabaseConfigured && (
+            <p className="landing-auth-hint">
+              Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in Vercel to enable real sign-up.
+            </p>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

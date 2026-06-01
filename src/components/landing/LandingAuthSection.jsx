@@ -2,13 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
+import { OAUTH_PROVIDERS } from '../../lib/authProviders';
 import ClassroomWardenLogo from '../ClassroomWardenLogo';
-
-const OAUTH_PROVIDERS = [
-  { id: 'google', label: 'Continue with Google', icon: 'G', brandClass: 'oauth-google' },
-  { id: 'github', label: 'Continue with GitHub', icon: '⌘', brandClass: 'oauth-github' },
-  { id: 'yahoo', label: 'Continue with Yahoo', icon: 'Y', brandClass: 'oauth-yahoo' },
-];
 
 export default function LandingAuthSection({ onSuccess }) {
   const { signUp, signIn, signInWithOAuth, authMode } = useAuth();
@@ -118,7 +113,7 @@ export default function LandingAuthSection({ onSuccess }) {
               onClick={() => void handleOAuth(p.id)}
             >
               <span className="landing-oauth-icon" aria-hidden>
-                {p.icon}
+                {p.id === 'apple' ? '' : p.icon}
               </span>
               {oauthLoading === p.id ? 'Redirecting…' : p.label}
             </button>

@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { authRedirectUrl } from '../lib/authProviders';
 import {
   getLocalSession,
   localSignIn,
@@ -38,7 +39,7 @@ interface AuthContextValue {
     school: string;
   }) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signInWithOAuth: (provider: 'google' | 'github' | 'yahoo') => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'apple' | 'yahoo') => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -111,11 +112,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           password,
           options: {
             data: { full_name: fullName.trim(), school: school.trim() },
+            emailRedirectTo: authRedirectUrl(),
           },
         });
         if (error) throw error;
-        if (data.user) setUser(profileFromSupabaseUser(data.user));
-        if (data.session) setSession(data.session);
+        if (data.session) {
+          setSession(data.session);
+          if (data.user) setUser(profileFromSupabaseUser(data.user));
+          return;
+        }
+        if (data.user && !data.session) {
+          throw new Error('Check your email to confirm your account, then sign in.');
+        }
         return;
       }
 
@@ -144,17 +152,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [authMode],
   );
 
-  const signInWithOAuth = useCallback(async (provider: 'google' | 'github' | 'yahoo') => {
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'github' | 'apple' | 'yahoo') => {
     if (!isSupabaseConfigured || !supabase) {
       throw new Error(
-        'Social sign-in requires Supabase. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, or use email below.',
+        'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env (local) or Vercel env vars (production).',
       );
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: authRedirectUrl(),
+        queryParams: provider === 'yahoo' ? { prompt: 'login' } : undefined,
       },
     } as Parameters<NonNullable<typeof supabase>['auth']['signInWithOAuth']>[0]);
     if (error) throw error;

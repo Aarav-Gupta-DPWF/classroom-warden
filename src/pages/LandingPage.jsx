@@ -36,12 +36,19 @@ export default function LandingPage() {
   const location = useLocation();
   const { user } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signin');
+  const [authMode, setAuthMode] = useState('signup');
 
   const openAuth = (mode) => {
     setAuthMode(mode);
     setAuthOpen(true);
   };
+
+  useEffect(() => {
+    if (user && window.location.hash.includes('access_token')) {
+      window.history.replaceState({}, '', '/welcome');
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (location.state?.auth === 'required') {
@@ -85,22 +92,13 @@ export default function LandingPage() {
               Open Console
             </MotionButton>
           ) : (
-            <>
-              <MotionButton
-                className="landing-btn-signin landing-btn-ghost"
-                playSoundOnClick={false}
-                onClick={() => openAuth('signin')}
-              >
-                Sign In
-              </MotionButton>
-              <MotionButton
-                className="landing-btn-signin"
-                playSoundOnClick={false}
-                onClick={() => openAuth('signup')}
-              >
-                Sign Up
-              </MotionButton>
-            </>
+            <MotionButton
+              className="landing-btn-signin"
+              playSoundOnClick={false}
+              onClick={() => openAuth('signup')}
+            >
+              Sign Up
+            </MotionButton>
           )}
         </div>
       </header>
