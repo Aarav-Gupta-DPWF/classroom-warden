@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         if (data.user && !data.session) {
-          throw new Error('Check your email to confirm your account, then sign in.');
+          throw new Error('Check your email to confirm your account, then log in.');
         }
         return;
       }

@@ -7,7 +7,7 @@ import ClassroomWardenLogo from '../ClassroomWardenLogo';
 
 export default function LandingAuthSection({ onSuccess }) {
   const { signUp, signIn, signInWithOAuth, authMode } = useAuth();
-  const [view, setView] = useState('signin');
+  const [view, setView] = useState('signup');
   const [fullName, setFullName] = useState('');
   const [school, setSchool] = useState('');
   const [email, setEmail] = useState('');
@@ -17,6 +17,8 @@ export default function LandingAuthSection({ onSuccess }) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(null);
+
+  const isSignUp = view === 'signup';
 
   const reset = () => {
     setError('');
@@ -32,7 +34,7 @@ export default function LandingAuthSection({ onSuccess }) {
       setError('Password must be at least 8 characters.');
       return false;
     }
-    if (view === 'signup') {
+    if (isSignUp) {
       if (!fullName.trim()) {
         setError('Enter your full name.');
         return false;
@@ -55,7 +57,7 @@ export default function LandingAuthSection({ onSuccess }) {
     try {
       await signInWithOAuth(provider);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start social sign-in.');
+      setError(err instanceof Error ? err.message : 'Could not start social login.');
     } finally {
       setOauthLoading(null);
     }
@@ -67,10 +69,10 @@ export default function LandingAuthSection({ onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      if (view === 'signup') {
+      if (isSignUp) {
         await signUp({ email, password, fullName, school });
         if (authMode === 'supabase' && isSupabaseConfigured) {
-          setMessage('Account created! Check your email to confirm, then sign in.');
+          setMessage('Account created! Check your email to confirm, then log in.');
           setView('signin');
         } else {
           onSuccess?.();
@@ -98,8 +100,12 @@ export default function LandingAuthSection({ onSuccess }) {
         <div className="landing-auth-card-header">
           <ClassroomWardenLogo height={44} className="landing-auth-logo" />
           <div>
-            <h2>Sign in to Classroom Warden</h2>
-            <p>Use your school account or email — same access on every device when Supabase is connected.</p>
+            <h2>{isSignUp ? 'Create your account' : 'Log in'}</h2>
+            <p>
+              {isSignUp
+                ? 'Sign Up with your school account — full name, school, email, and password below.'
+                : 'Already signed up? Log in with Google, GitHub, Apple, Yahoo, or email.'}
+            </p>
           </div>
         </div>
 
@@ -121,13 +127,13 @@ export default function LandingAuthSection({ onSuccess }) {
         </div>
 
         <div className="landing-auth-divider">
-          <span>or sign in with email</span>
+          <span>{isSignUp ? 'or create account with email' : 'or log in with email'}</span>
         </div>
 
         <div className="landing-auth-tabs">
           <button
             type="button"
-            className={view === 'signin' ? 'active' : ''}
+            className={!isSignUp ? 'active' : ''}
             onClick={() => {
               setView('signin');
               reset();
@@ -137,18 +143,18 @@ export default function LandingAuthSection({ onSuccess }) {
           </button>
           <button
             type="button"
-            className={view === 'signup' ? 'active' : ''}
+            className={isSignUp ? 'active' : ''}
             onClick={() => {
               setView('signup');
               reset();
             }}
           >
-            Sign up
+            Sign Up
           </button>
         </div>
 
         <form className="landing-auth-form" onSubmit={handleSubmit}>
-          {view === 'signup' && (
+          {isSignUp && (
             <>
               <label>
                 Full name
@@ -187,10 +193,10 @@ export default function LandingAuthSection({ onSuccess }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min. 8 characters"
-              autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
             />
           </label>
-          {view === 'signup' && (
+          {isSignUp && (
             <label>
               Confirm password
               <input
@@ -207,13 +213,13 @@ export default function LandingAuthSection({ onSuccess }) {
           {message && <p className="landing-auth-success">{message}</p>}
 
           <button type="submit" className="landing-auth-submit" disabled={loading}>
-            {loading ? 'Please wait…' : view === 'signup' ? 'Create account' : 'Log in'}
+            {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Log in'}
           </button>
         </form>
 
         {!isSupabaseConfigured && (
           <p className="landing-auth-hint">
-            Social sign-in needs Supabase env vars on Vercel. Email sign-up works on this device until then.
+            Social login needs Supabase env vars on Vercel. Email Sign Up works on this device until then.
           </p>
         )}
       </motion.div>

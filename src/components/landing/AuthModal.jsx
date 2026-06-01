@@ -18,6 +18,8 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(null);
 
+  const isSignUp = view === 'signup';
+
   useEffect(() => {
     if (open) {
       setView(initialMode);
@@ -40,7 +42,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
       setError('Password must be at least 8 characters.');
       return false;
     }
-    if (view === 'signup') {
+    if (isSignUp) {
       if (!fullName.trim()) {
         setError('Enter your full name.');
         return false;
@@ -63,7 +65,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
     try {
       await signInWithOAuth(provider);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start social sign-in.');
+      setError(err instanceof Error ? err.message : 'Could not start social login.');
     } finally {
       setOauthLoading(null);
     }
@@ -75,7 +77,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
     if (!validate()) return;
     setLoading(true);
     try {
-      if (view === 'signup') {
+      if (isSignUp) {
         await signUp({ email, password, fullName, school });
         onSuccess?.();
         onClose();
@@ -119,11 +121,13 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
           <div className="auth-modal-header">
             <ClassroomWardenLogo height={36} />
             <div>
-              <h2>{view === 'signup' ? 'Create your account' : 'Welcome back'}</h2>
+              <h2>{isSignUp ? 'Create your account' : 'Log in'}</h2>
               <p>
                 {authMode === 'supabase'
-                  ? 'Sign in with Google, GitHub, Apple, Yahoo, or email'
-                  : 'Add Supabase env vars to enable cloud sign-in'}
+                  ? isSignUp
+                    ? 'Sign Up with Google, GitHub, Apple, Yahoo, or email below'
+                    : 'Log in with Google, GitHub, Apple, Yahoo, or email below'
+                  : 'Add Supabase env vars to enable cloud accounts'}
               </p>
             </div>
             <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close">
@@ -149,11 +153,11 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
           </div>
 
           <div className="landing-auth-divider auth-modal-divider">
-            <span>or log in with email</span>
+            <span>{isSignUp ? 'or create account with email' : 'or log in with email'}</span>
           </div>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
-            {view === 'signup' && (
+            {isSignUp && (
               <>
                 <label>
                   Full name
@@ -192,10 +196,10 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min. 8 characters"
-                autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
               />
             </label>
-            {view === 'signup' && (
+            {isSignUp && (
               <label>
                 Confirm password
                 <input
@@ -212,12 +216,12 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
             {message && <p className="auth-modal-success">{message}</p>}
 
             <button type="submit" className="auth-modal-submit" disabled={loading}>
-              {loading ? 'Please wait…' : view === 'signup' ? 'Create account' : 'Log in'}
+              {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Log in'}
             </button>
           </form>
 
           <p className="auth-modal-switch">
-            {view === 'signup' ? (
+            {isSignUp ? (
               <>
                 Already have an account?{' '}
                 <button type="button" onClick={() => { setView('signin'); reset(); }}>
@@ -228,7 +232,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
               <>
                 New to Classroom Warden?{' '}
                 <button type="button" onClick={() => { setView('signup'); reset(); }}>
-                  Sign up free
+                  Sign Up
                 </button>
               </>
             )}

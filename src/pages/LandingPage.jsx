@@ -92,13 +92,22 @@ export default function LandingPage() {
               Open Console
             </MotionButton>
           ) : (
-            <MotionButton
-              className="landing-btn-signin"
-              playSoundOnClick={false}
-              onClick={() => openAuth('signup')}
-            >
-              Sign Up
-            </MotionButton>
+            <>
+              <MotionButton
+                className="landing-btn-signin landing-btn-ghost"
+                playSoundOnClick={false}
+                onClick={() => openAuth('signin')}
+              >
+                Log in
+              </MotionButton>
+              <MotionButton
+                className="landing-btn-signin"
+                playSoundOnClick={false}
+                onClick={() => openAuth('signup')}
+              >
+                Sign Up
+              </MotionButton>
+            </>
           )}
         </div>
       </header>
@@ -187,7 +196,7 @@ export default function LandingPage() {
             playSoundOnClick={false}
             onClick={() => document.getElementById('access')?.scrollIntoView({ behavior: 'smooth' })}
           >
-            Sign up free →
+            Sign Up →
           </MotionButton>
         )}
       </section>
