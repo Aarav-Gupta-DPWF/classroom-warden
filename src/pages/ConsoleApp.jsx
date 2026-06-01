@@ -12,7 +12,7 @@ import Settings from '../components/Settings';
 import Contact from '../components/Contact';
 import AudioConsentGate from '../components/AudioConsentGate';
 import WardenEngineBadge from '../components/WardenEngineBadge';
-import TrafficLightLogo from '../components/TrafficLightLogo';
+import ClassroomWardenLogo from '../components/ClassroomWardenLogo';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../App.css';
@@ -71,13 +71,8 @@ export default function ConsoleApp() {
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}>
-            <span className="logo-icon">
-              <TrafficLightLogo height={58} />
-            </span>
-            <div>
-              <h1 className="app-title">Classroom Warden</h1>
-              <p className="app-subtitle">Live Noise Intelligence</p>
-            </div>
+            <ClassroomWardenLogo height={56} className="console-brand-logo" />
+            <p className="app-subtitle console-brand-sub">Live Noise Intelligence</p>
           </motion.div>
 
           <motion.div className="header-right"

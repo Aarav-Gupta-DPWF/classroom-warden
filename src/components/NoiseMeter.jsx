@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const R = 108, CX = 150, CY = 150;
 const CIRC = 2 * Math.PI * R;
 const ARC = CIRC * 0.75;
 const ROT = 135;
+
+/** How quickly the display catches up to the mic (lower = smoother / slower). */
+const DB_SMOOTHING = 0.045;
+const WAVE_SMOOTHING = 0.06;
+const UI_UPDATE_MS = 120;
 
 function dbToPercent(db) { return Math.max(0, Math.min(100, (db - 20) / 72 * 100)); }
 function compassToXY(angleDeg, r = R) {
@@ -26,14 +31,20 @@ function getState(db) {
   return                    { color: '#FF4757', glow: 'rgba(255,71,87,0.45)',   label: 'LOUD',     bg: 'rgba(255,71,87,0.06)' };
 }
 
+function smoothToward(current, target, factor) {
+  return current + (target - current) * factor;
+}
+
 // ── Real microphone hook ──
 function useMicAudio() {
-  const [micStatus, setMicStatus] = useState('idle'); // idle | requesting | active | denied
+  const [micStatus, setMicStatus] = useState('idle');
   const [audioData, setAudioData] = useState({ db: 28, wave: Array(44).fill(28) });
   const ctxRef = useRef(null);
   const analyserRef = useRef(null);
   const rafRef = useRef(null);
   const streamRef = useRef(null);
+  const smoothRef = useRef({ db: 28, wave: Array(44).fill(28) });
+  const lastPushRef = useRef(0);
 
   const start = useCallback(async () => {
     setMicStatus('requesting');
@@ -43,7 +54,7 @@ function useMicAudio() {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.75;
+      analyser.smoothingTimeConstant = 0.92;
       ctx.createMediaStreamSource(stream).connect(analyser);
       ctxRef.current = ctx;
       analyserRef.current = analyser;
@@ -52,11 +63,10 @@ function useMicAudio() {
       const floatBuf = new Float32Array(analyser.fftSize);
       const byteBuf  = new Uint8Array(analyser.frequencyBinCount);
 
-      const loop = () => {
+      const loop = (now) => {
         analyser.getFloatTimeDomainData(floatBuf);
         analyser.getByteFrequencyData(byteBuf);
 
-        // RMS → dBFS → mapped display dB
         let sum = 0;
         for (let i = 0; i < floatBuf.length; i++) sum += floatBuf[i] ** 2;
         const rms = Math.sqrt(sum / floatBuf.length);
@@ -65,14 +75,19 @@ function useMicAudio() {
         const sensitivity = parseFloat(
           (() => { try { return JSON.parse(localStorage.getItem('cw-settings') || '{}').micSensitivity || 1.0; } catch { return 1.0; } })()
         );
-        // Map -80..0 dBFS → 20..88 display dB, scaled by sensitivity
         const mapped = Math.max(20, Math.min(88, (dbFS + 80) * (68 / 80) + 20));
-        const db = Math.max(20, Math.min(88, mapped * sensitivity));
+        const rawDb = Math.max(20, Math.min(88, mapped * sensitivity));
+        const rawWave = Array.from(byteBuf.slice(0, 44)).map(v => 20 + (v / 255) * 68);
 
-        // Wave: 44 frequency bins normalised 0–100
-        const wave = Array.from(byteBuf.slice(0, 44)).map(v => 20 + (v / 255) * 68);
+        const s = smoothRef.current;
+        s.db = smoothToward(s.db, rawDb, DB_SMOOTHING);
+        s.wave = s.wave.map((v, i) => smoothToward(v, rawWave[i], WAVE_SMOOTHING));
 
-        setAudioData({ db, wave });
+        if (now - lastPushRef.current >= UI_UPDATE_MS) {
+          lastPushRef.current = now;
+          setAudioData({ db: s.db, wave: [...s.wave] });
+        }
+
         rafRef.current = requestAnimationFrame(loop);
       };
       rafRef.current = requestAnimationFrame(loop);
@@ -93,7 +108,7 @@ function useMicAudio() {
   return { ...audioData, micStatus, retry: start };
 }
 
-// ── Simulation fallback ──
+// ── Simulation fallback (slow, calm drift) ──
 function useNoiseSim() {
   const [db, setDb] = useState(42);
   const [wave, setWave] = useState(() => Array(44).fill(42));
@@ -101,15 +116,15 @@ function useNoiseSim() {
   useEffect(() => {
     const id = setInterval(() => {
       const s = sim.current;
-      if (++s.ttimer > 55 + Math.random() * 90) { s.ttimer = 0; s.target = 26 + Math.random() * 58; }
-      if (++s.stimer > 130 + Math.random() * 220) { s.stimer = 0; s.spike = 12 + Math.random() * 22; }
-      s.spike *= 0.87;
-      s.cur += (s.target - s.cur) * 0.055 + (Math.random() - 0.5) * 1.8;
+      if (++s.ttimer > 140 + Math.random() * 180) { s.ttimer = 0; s.target = 26 + Math.random() * 58; }
+      if (++s.stimer > 280 + Math.random() * 320) { s.stimer = 0; s.spike = 8 + Math.random() * 14; }
+      s.spike *= 0.92;
+      s.cur += (s.target - s.cur) * 0.022 + (Math.random() - 0.5) * 0.6;
       s.cur = Math.max(18, Math.min(90, s.cur));
       const val = Math.min(93, s.cur + s.spike);
       setDb(val);
       setWave(prev => [...prev.slice(1), val]);
-    }, 55);
+    }, 140);
     return () => clearInterval(id);
   }, []);
   return { db, wave };
@@ -122,7 +137,7 @@ const TICKS = Array.from({ length: 19 }, (_, i) => {
 });
 
 const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
-  angle: i * 18, delay: (i / 20) * 2.8, dur: 2.4 + (i % 4) * 0.55, size: 2 + (i % 3),
+  angle: i * 18, delay: (i / 20) * 2.8, dur: 3.6 + (i % 4) * 0.8, size: 2 + (i % 3),
 }));
 
 function Particles({ db, color }) {
@@ -165,11 +180,11 @@ function Gauge({ db }) {
           <stop offset="100%" stopColor={st.color} stopOpacity="0.2" />
         </linearGradient>
       </defs>
-      <circle cx={CX} cy={CY} r="138" fill="url(#cg)" style={{ transition: 'fill 0.5s ease' }} />
+      <circle cx={CX} cy={CY} r="138" fill="url(#cg)" style={{ transition: 'fill 1.2s ease' }} />
       {isLoud && [0, 1, 0.5].map((delay, i) => (
         <circle key={i} cx={CX} cy={CY} r="140" fill="none" stroke={st.color}
           strokeWidth={i === 2 ? 0.8 : 1.2}
-          style={{ animation: `pulse-ring 2s ease-out ${delay}s infinite`, transformOrigin: `${CX}px ${CY}px` }} />
+          style={{ animation: `pulse-ring 3.5s ease-out ${delay}s infinite`, transformOrigin: `${CX}px ${CY}px` }} />
       ))}
       <circle cx={CX} cy={CY} r="138" fill="none" stroke="rgba(255,255,255,0.035)" strokeWidth="1" />
       {TICKS.map((t, i) => (
@@ -198,24 +213,28 @@ function Gauge({ db }) {
         strokeDasharray={`${Math.max(0, fill - 2)} ${CIRC - Math.max(0, fill - 2)}`}
         style={{
           transform: `rotate(${ROT}deg)`, transformOrigin: `${CX}px ${CY}px`,
-          transition: 'stroke-dasharray 0.28s ease, stroke 0.45s ease',
+          transition: 'stroke-dasharray 1.1s cubic-bezier(0.4, 0, 0.2, 1), stroke 1s ease',
           filter: `drop-shadow(0 0 8px ${st.color}) drop-shadow(0 0 16px ${st.color}44)`,
         }} />
       <circle cx={CX} cy={CY} r="84" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
       <circle cx={CX} cy={CY} r="79" fill="rgba(6,11,24,0.93)" />
-      <g style={{ transform: `rotate(${needleRot}deg)`, transformOrigin: `${CX}px ${CY}px`, transition: 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1)' }}>
+      <g style={{
+        transform: `rotate(${needleRot}deg)`,
+        transformOrigin: `${CX}px ${CY}px`,
+        transition: 'transform 1.2s cubic-bezier(0.33, 1, 0.38, 1)',
+      }}>
         <line x1={CX} y1={CY} x2={CX} y2={CY - 84} stroke={st.color} strokeWidth="6" strokeLinecap="round" opacity="0.12" filter="url(#glow2)" />
         <line x1={CX} y1={CY + 10} x2={CX} y2={CY - 82} stroke="url(#needleGrad)" strokeWidth="2.5" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 3px ${st.color})` }} />
         <circle cx={CX} cy={CY - 82} r="3.5" fill={st.color} filter="url(#glow3)" />
       </g>
-      <circle cx={CX} cy={CY} r="10" fill="rgba(6,11,24,0.98)" stroke={st.color} strokeWidth="1.5" style={{ transition: 'stroke 0.45s ease' }} />
-      <circle cx={CX} cy={CY} r="4" fill={st.color} style={{ transition: 'fill 0.45s ease', animation: 'pulse-dot 1.8s ease-in-out infinite', filter: `drop-shadow(0 0 5px ${st.color})` }} />
+      <circle cx={CX} cy={CY} r="10" fill="rgba(6,11,24,0.98)" stroke={st.color} strokeWidth="1.5" style={{ transition: 'stroke 1s ease' }} />
+      <circle cx={CX} cy={CY} r="4" fill={st.color} style={{ transition: 'fill 1s ease', animation: 'pulse-dot 2.8s ease-in-out infinite', filter: `drop-shadow(0 0 5px ${st.color})` }} />
       <text x={CX} y={CY - 26} textAnchor="middle" fill="rgba(255,255,255,0.22)" fontSize="9.5" fontFamily="system-ui" letterSpacing="2.5" fontWeight="700">DECIBELS</text>
-      <text x={CX} y={CY + 16} textAnchor="middle" fill={st.color} fontSize="44" fontFamily="system-ui" fontWeight="800" letterSpacing="-2" style={{ transition: 'fill 0.45s ease' }}>{Math.round(db)}</text>
-      <text x={CX} y={CY + 38} textAnchor="middle" fill={st.color} fontSize="9.5" fontFamily="system-ui" fontWeight="800" letterSpacing="3.5" style={{ transition: 'fill 0.45s ease' }}>{getState(db).label}</text>
+      <text x={CX} y={CY + 16} textAnchor="middle" fill={st.color} fontSize="44" fontFamily="system-ui" fontWeight="800" letterSpacing="-2" style={{ transition: 'fill 1s ease' }}>{Math.round(db)}</text>
+      <text x={CX} y={CY + 38} textAnchor="middle" fill={st.color} fontSize="9.5" fontFamily="system-ui" fontWeight="800" letterSpacing="3.5" style={{ transition: 'fill 1s ease' }}>{getState(db).label}</text>
       {pct > 1 && <>
-        <circle cx={dot.x} cy={dot.y} r="16" fill={st.glow} style={{ transition: 'fill 0.45s ease' }} />
-        <circle cx={dot.x} cy={dot.y} r="7" fill={st.color} filter="url(#glow2)" style={{ transition: 'fill 0.45s ease', animation: 'pulse-dot 1.5s ease-in-out infinite' }} />
+        <circle cx={dot.x} cy={dot.y} r="16" fill={st.glow} style={{ transition: 'fill 1s ease' }} />
+        <circle cx={dot.x} cy={dot.y} r="7" fill={st.color} filter="url(#glow2)" style={{ transition: 'fill 1s ease', animation: 'pulse-dot 2.4s ease-in-out infinite' }} />
         <circle cx={dot.x} cy={dot.y} r="3.5" fill="white" opacity="0.95" />
       </>}
     </svg>
@@ -234,7 +253,7 @@ function Waveform({ wave, db }) {
             height: `${h}px`, background: st.color,
             opacity: 0.12 + age * 0.88,
             boxShadow: i >= wave.length - 4 ? `0 0 6px ${st.color}` : 'none',
-            transition: 'height 0.07s ease, background 0.4s ease',
+            transition: 'height 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s ease, opacity 0.5s ease',
           }} />
         );
       })}
@@ -284,7 +303,6 @@ export default function NoiseMeter() {
         <p className="section-sub">Oshwal Academy Nairobi Junior High · Real-time analysis</p>
       </motion.div>
 
-      {/* Mic status pill */}
       <motion.div variants={itemVars}>
         <div className="mic-status-pill" style={{ borderColor: statusCfg.color, color: statusCfg.color }}>
           <span className="mic-status-icon">{statusCfg.icon}</span>
@@ -315,7 +333,7 @@ export default function NoiseMeter() {
             transition={{ delay: 0.3 + i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             whileHover={{ y: -3, transition: { duration: 0.2 } }}>
             <div className="stat-label">{s.label}</div>
-            <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
+            <div className="stat-value" style={{ color: s.color, transition: 'color 1s ease' }}>{s.value}</div>
           </motion.div>
         ))}
       </motion.div>

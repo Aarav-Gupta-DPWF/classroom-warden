@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
-import TrafficLightLogo from '../TrafficLightLogo';
+import ClassroomWardenLogo from '../ClassroomWardenLogo';
 
 const OAUTH_PROVIDERS = [
   { id: 'google', label: 'Continue with Google', icon: 'G', brandClass: 'oauth-google' },
@@ -101,7 +101,7 @@ export default function LandingAuthSection({ onSuccess }) {
         transition={{ duration: 0.5 }}
       >
         <div className="landing-auth-card-header">
-          <TrafficLightLogo height={40} className="landing-auth-logo" />
+          <ClassroomWardenLogo height={44} className="landing-auth-logo" />
           <div>
             <h2>Sign in to Classroom Warden</h2>
             <p>Use your school account or email — same access on every device when Supabase is connected.</p>

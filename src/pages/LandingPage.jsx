@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import ConstellationBg from '../components/landing/ConstellationBg';
-import TrafficLightLogo from '../components/TrafficLightLogo';
+import ClassroomWardenLogo from '../components/ClassroomWardenLogo';
 import AuthModal from '../components/landing/AuthModal';
 import LandingAuthSection from '../components/landing/LandingAuthSection';
 import { MotionButton } from '../components/motion';
@@ -72,8 +72,7 @@ export default function LandingPage() {
 
       <header className="landing-nav">
         <a href="/welcome" className="landing-brand">
-          <TrafficLightLogo height={36} className="landing-brand-logo" />
-          <span>Classroom Warden</span>
+          <ClassroomWardenLogo height={44} className="landing-brand-logo" />
         </a>
         <nav className="landing-links">
           <button type="button" onClick={() => scrollTo('modules')}>Modules</button>
@@ -196,7 +195,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="landing-footer">
-        <TrafficLightLogo height={20} />
+        <ClassroomWardenLogo height={36} />
         <span>© {new Date().getFullYear()} Classroom Warden</span>
       </footer>
 

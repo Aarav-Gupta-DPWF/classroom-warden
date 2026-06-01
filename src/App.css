@@ -96,6 +96,15 @@
   gap: 14px;
 }
 
+.console-brand-logo {
+  flex-shrink: 0;
+}
+
+.console-brand-sub {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .logo-icon {
   display: flex;
   align-items: center;

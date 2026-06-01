@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
-import TrafficLightLogo from '../TrafficLightLogo';
+import ClassroomWardenLogo from '../ClassroomWardenLogo';
 
 const OAUTH_PROVIDERS = [
   { id: 'google', label: 'Google', brandClass: 'oauth-google' },
@@ -111,7 +111,7 @@ export default function AuthModal({ open, onClose, onSuccess, initialMode = 'sig
           onClick={(e) => e.stopPropagation()}
         >
           <div className="auth-modal-header">
-            <TrafficLightLogo height={32} />
+            <ClassroomWardenLogo height={36} />
             <div>
               <h2>{view === 'signup' ? 'Create your account' : 'Welcome back'}</h2>
               <p>

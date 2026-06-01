@@ -48,17 +48,11 @@
 .landing-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
   text-decoration: none;
-  color: #fff;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.2px;
 }
 
 .landing-brand-logo {
   flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(0, 229, 180, 0.35));
 }
 
 .landing-nav-actions {
