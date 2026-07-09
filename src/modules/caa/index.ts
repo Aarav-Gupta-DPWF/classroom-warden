@@ -3,11 +3,9 @@ export { useMediaCapture, type UseMediaCaptureReturn } from './capture/useMediaC
 export { negotiateRecorderMimeType } from './capture/codecNegotiation';
 export { probeAudioChannels } from './capture/channelDetection';
 export { mapMediaError } from './capture/mediaErrors';
-export { validateUploadFile } from './capture/uploadValidation';
 export type {
   CAAConfig,
   CaptureUiState,
-  ConsentArtifact,
   SensingMode,
   VisionSubMode,
   ZoneActivityTuple,

@@ -31,20 +31,10 @@ export interface RoomLevelTuple {
   mode: 'B';
 }
 
-export interface ConsentArtifact {
-  id: string;
-  issuedAt: string; // ISO
-  expiresAt: string; // ISO
-  scope: 'upload' | 'landmark-assisted';
-  issuer: string;
-}
-
 export interface CAAConfig {
   visionMode: VisionSubMode;
-  consentArtifacts: ConsentArtifact[];
   analyticsOptIn: boolean;
   zoneCount: 2 | 4;
-  uploadEndpoint?: string;
 }
 
 export interface MediaDeviceOption {
@@ -60,11 +50,6 @@ export interface CaptureErrorInfo {
 }
 
 export const MIN_ARRAY_CHANNELS = 4;
-
-export const UPLOAD_LIMITS = {
-  maxBytes: 400 * 1024 * 1024,
-  maxDurationSec: 3600,
-} as const;
 
 export const MIME_CANDIDATES = [
   'video/webm;codecs=vp9,opus',

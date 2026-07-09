@@ -199,24 +199,6 @@
   border-color: rgba(255, 107, 122, 0.45);
 }
 
-.caa-upload-zone {
-  border: 1px dashed var(--caa-border);
-  border-radius: 8px;
-  padding: 14px;
-  text-align: center;
-  font-size: 0.85rem;
-}
-
-.caa-upload-zone--drag {
-  border-color: var(--caa-teal);
-  background: rgba(0, 229, 180, 0.06);
-}
-
-.caa-upload-zone progress {
-  width: 100%;
-  margin-top: 10px;
-}
-
 .caa-status-badge {
   display: flex;
   gap: 8px;

@@ -1,32 +1,18 @@
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import type { CAAConfig, CaptureUiState } from '../types';
-import { hasValidConsent } from './chunkedUpload';
-import { consentRequiredError } from './mediaErrors';
 import { useMediaCapture } from './useMediaCapture';
-import { validateUploadFile } from './uploadValidation';
-import { chunkedUpload } from './chunkedUpload';
 import './CaptureLayer.css';
 
 export interface CaptureLayerProps {
-  config: CAAConfig;
+  config?: CAAConfig;
   /** Parent may set fusion-driven low-confidence state */
   fusionUiState?: Extract<CaptureUiState, 'low-confidence'>;
-  onUploadComplete?: (uploadId: string) => void;
 }
 
-export function CaptureLayer({ config, fusionUiState, onUploadComplete }: CaptureLayerProps) {
+export function CaptureLayer({ config: _config, fusionUiState }: CaptureLayerProps) {
   const [videoDeviceId, setVideoDeviceId] = useState<string>('');
   const [audioDeviceId, setAudioDeviceId] = useState<string>('');
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadAbortRef = useRef<AbortController | null>(null);
   const liveRegionId = useId();
-
-  const landmarkBlocked =
-    config.visionMode === 'landmark-assisted' &&
-    !hasValidConsent(config.consentArtifacts, 'landmark-assisted');
 
   const capture = useMediaCapture({
     videoDeviceId: videoDeviceId || undefined,
@@ -39,81 +25,9 @@ export function CaptureLayer({ config, fusionUiState, onUploadComplete }: Captur
       : capture.uiState;
 
   const handleStartLive = useCallback(async () => {
-    if (landmarkBlocked) {
-      capture.killSwitch();
-      return;
-    }
     await capture.resumeAudioContext();
     await capture.startLive();
-  }, [capture, landmarkBlocked]);
-
-  const processUploadFile = useCallback(
-    async (file: File) => {
-      setUploadError(null);
-      setUploadProgress(null);
-
-      if (!hasValidConsent(config.consentArtifacts, 'upload')) {
-        setUploadError(consentRequiredError('Retrospective upload').userMessage);
-        return;
-      }
-
-      if (!config.uploadEndpoint) {
-        setUploadError('Upload endpoint is not configured. Contact your administrator.');
-        return;
-      }
-
-      const validation = await validateUploadFile(file);
-      if (!validation.ok) {
-        setUploadError(validation.error ?? 'Invalid file.');
-        return;
-      }
-
-      capture.killSwitch();
-      uploadAbortRef.current?.abort();
-      uploadAbortRef.current = new AbortController();
-
-      try {
-        const uploadId = await chunkedUpload({
-          endpoint: config.uploadEndpoint,
-          file,
-          onProgress: setUploadProgress,
-          signal: uploadAbortRef.current.signal,
-        });
-        setUploadProgress(100);
-        onUploadComplete?.(uploadId);
-      } catch (err) {
-        setUploadError(err instanceof Error ? err.message : 'Upload failed.');
-      }
-    },
-    [config.consentArtifacts, config.uploadEndpoint, capture, onUploadComplete],
-  );
-
-  const onFileInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) void processUploadFile(file);
-      e.target.value = '';
-    },
-    [processUploadFile],
-  );
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) void processUploadFile(file);
-    },
-    [processUploadFile],
-  );
-
-  if (landmarkBlocked && capture.uiState === 'empty') {
-    return (
-      <section className="caa-capture" aria-labelledby="caa-title">
-        <ConsentBlock message={consentRequiredError('Landmark-assisted vision').userMessage} />
-      </section>
-    );
-  }
+  }, [capture]);
 
   return (
     <section className="caa-capture" aria-labelledby="caa-title">
@@ -141,13 +55,6 @@ export function CaptureLayer({ config, fusionUiState, onUploadComplete }: Captur
         <div className="caa-error-banner" role="alert">
           <strong>Unable to start capture</strong>
           <p>{capture.error.userMessage}</p>
-        </div>
-      )}
-
-      {uploadError && (
-        <div className="caa-error-banner" role="alert">
-          <strong>Upload</strong>
-          <p>{uploadError}</p>
         </div>
       )}
 
@@ -239,46 +146,10 @@ export function CaptureLayer({ config, fusionUiState, onUploadComplete }: Captur
             )}
           </div>
 
-          <div
-            className={`caa-upload-zone ${isDragging ? 'caa-upload-zone--drag' : ''}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={onDrop}
-          >
-            <p>Retrospective analysis upload (requires school consent)</p>
-            <button type="button" className="caa-btn" onClick={() => fileInputRef.current?.click()}>
-              Choose video file
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*"
-              className="caa-sr-only"
-              onChange={onFileInput}
-            />
-            {uploadProgress !== null && (
-              <progress max={100} value={uploadProgress} aria-label="Upload progress">
-                {uploadProgress}%
-              </progress>
-            )}
-          </div>
-
           <StatusBadge state={displayState} mode={capture.sensingMode} />
         </aside>
       </div>
     </section>
-  );
-}
-
-function ConsentBlock({ message }: { message: string }) {
-  return (
-    <div className="caa-error-banner" role="alert">
-      <strong>Consent required</strong>
-      <p>{message}</p>
-    </div>
   );
 }
 
@@ -294,7 +165,7 @@ function StateAnnouncer({
     'requesting-permission': 'Waiting for camera and microphone permission.',
     denied: 'Permission denied. Update browser settings to allow access.',
     live: 'Live sensing active with zone detection.',
-    recording: 'Recording locally. Upload is separate and requires consent.',
+    recording: 'Recording locally on this device.',
     processing: 'Processing recording.',
     degraded: probeReason ?? 'Room-level sensing only. Zones unavailable.',
     'low-confidence': 'Low confidence detections are hidden from view.',

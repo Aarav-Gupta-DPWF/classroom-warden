@@ -104,10 +104,3 @@ export function iframePermissionError(): CaptureErrorInfo {
       'This page is embedded in another site. The parent page must include allow="camera; microphone" on the iframe. Ask your administrator to update the embed code.',
   };
 }
-
-export function consentRequiredError(scope: string): CaptureErrorInfo {
-  return {
-    code: 'ConsentRequired',
-    userMessage: `${scope} requires a signed school consent artifact before this mode can start. Contact your administrator to upload consent in Prompt DNA settings.`,
-  };
-}
