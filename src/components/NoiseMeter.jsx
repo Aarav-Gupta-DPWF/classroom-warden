@@ -29,14 +29,51 @@ function getState(db) {
   return                    { color: '#FF4757', glow: 'rgba(255,71,87,0.45)',   label: 'LOUD',     bg: 'rgba(255,71,87,0.06)' };
 }
 
+/** Display smoothing — lower = slower needle/wave (measurement stays instant). */
+const DISPLAY_DB_ALPHA = 0.07;
+const DISPLAY_WAVE_ALPHA = 0.1;
+const UI_UPDATE_MS = 90;
+
+function getMicSensitivity() {
+  try {
+    return parseFloat(JSON.parse(localStorage.getItem('cw-settings') || '{}').micSensitivity || 1.0);
+  } catch {
+    return 1.0;
+  }
+}
+
+function measureInstantDb(floatBuf) {
+  let sum = 0;
+  for (let i = 0; i < floatBuf.length; i++) sum += floatBuf[i] ** 2;
+  const rms = Math.sqrt(sum / floatBuf.length);
+  const dbFS = rms > 1e-8 ? 20 * Math.log10(rms) : -80;
+  const sensitivity = getMicSensitivity();
+  const mapped = Math.max(20, Math.min(88, (dbFS + 80) * (68 / 80) + 20));
+  return Math.max(20, Math.min(88, mapped * sensitivity));
+}
+
+function smoothToward(current, target, alpha) {
+  return current + (target - current) * alpha;
+}
+
+function smoothWaveArray(current, target, alpha) {
+  return current.map((v, i) => smoothToward(v, target[i], alpha));
+}
+
 // ── Real microphone hook ──
 function useMicAudio() {
-  const [micStatus, setMicStatus] = useState('idle'); // idle | requesting | active | denied
-  const [audioData, setAudioData] = useState({ db: 28, wave: Array(44).fill(28) });
+  const [micStatus, setMicStatus] = useState('idle');
+  const [audioData, setAudioData] = useState({
+    db: 28,
+    instantDb: 28,
+    wave: Array(44).fill(28),
+  });
   const ctxRef = useRef(null);
   const analyserRef = useRef(null);
   const rafRef = useRef(null);
   const streamRef = useRef(null);
+  const smoothRef = useRef({ db: 28, wave: Array(44).fill(28) });
+  const lastUiRef = useRef(0);
 
   const start = useCallback(async () => {
     setMicStatus('requesting');
@@ -46,36 +83,35 @@ function useMicAudio() {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.75;
+      analyser.smoothingTimeConstant = 0.35;
       ctx.createMediaStreamSource(stream).connect(analyser);
       ctxRef.current = ctx;
       analyserRef.current = analyser;
       setMicStatus('active');
 
       const floatBuf = new Float32Array(analyser.fftSize);
-      const byteBuf  = new Uint8Array(analyser.frequencyBinCount);
+      const byteBuf = new Uint8Array(analyser.frequencyBinCount);
 
-      const loop = () => {
+      const loop = (ts) => {
         analyser.getFloatTimeDomainData(floatBuf);
         analyser.getByteFrequencyData(byteBuf);
 
-        // RMS → dBFS → mapped display dB
-        let sum = 0;
-        for (let i = 0; i < floatBuf.length; i++) sum += floatBuf[i] ** 2;
-        const rms = Math.sqrt(sum / floatBuf.length);
-        const dbFS = rms > 1e-8 ? 20 * Math.log10(rms) : -80;
+        const instantDb = measureInstantDb(floatBuf);
+        const instantWave = Array.from(byteBuf.slice(0, 44)).map((v) => 20 + (v / 255) * 68);
 
-        const sensitivity = parseFloat(
-          (() => { try { return JSON.parse(localStorage.getItem('cw-settings') || '{}').micSensitivity || 1.0; } catch { return 1.0; } })()
-        );
-        // Map -80..0 dBFS → 20..88 display dB, scaled by sensitivity
-        const mapped = Math.max(20, Math.min(88, (dbFS + 80) * (68 / 80) + 20));
-        const db = Math.max(20, Math.min(88, mapped * sensitivity));
+        const s = smoothRef.current;
+        s.db = smoothToward(s.db, instantDb, DISPLAY_DB_ALPHA);
+        s.wave = smoothWaveArray(s.wave, instantWave, DISPLAY_WAVE_ALPHA);
 
-        // Wave: 44 frequency bins normalised 0–100
-        const wave = Array.from(byteBuf.slice(0, 44)).map(v => 20 + (v / 255) * 68);
+        if (ts - lastUiRef.current >= UI_UPDATE_MS) {
+          lastUiRef.current = ts;
+          setAudioData({
+            db: s.db,
+            instantDb,
+            wave: [...s.wave],
+          });
+        }
 
-        setAudioData({ db, wave });
         rafRef.current = requestAnimationFrame(loop);
       };
       rafRef.current = requestAnimationFrame(loop);
@@ -89,7 +125,7 @@ function useMicAudio() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (ctxRef.current) ctxRef.current.close();
-      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, [start]);
 
@@ -99,23 +135,49 @@ function useMicAudio() {
 // ── Simulation fallback ──
 function useNoiseSim() {
   const [db, setDb] = useState(42);
+  const [instantDb, setInstantDb] = useState(42);
   const [wave, setWave] = useState(() => Array(44).fill(42));
-  const sim = useRef({ cur: 42, target: 42, spike: 0, ttimer: 0, stimer: 0 });
+  const sim = useRef({
+    cur: 42,
+    target: 42,
+    spike: 0,
+    ttimer: 0,
+    stimer: 0,
+    smooth: 42,
+    smoothWave: Array(44).fill(42),
+  });
+
   useEffect(() => {
     const id = setInterval(() => {
       const s = sim.current;
-      if (++s.ttimer > 55 + Math.random() * 90) { s.ttimer = 0; s.target = 26 + Math.random() * 58; }
-      if (++s.stimer > 130 + Math.random() * 220) { s.stimer = 0; s.spike = 12 + Math.random() * 22; }
-      s.spike *= 0.87;
-      s.cur += (s.target - s.cur) * 0.055 + (Math.random() - 0.5) * 1.8;
+      if (++s.ttimer > 120 + Math.random() * 160) {
+        s.ttimer = 0;
+        s.target = 28 + Math.random() * 52;
+      }
+      if (++s.stimer > 220 + Math.random() * 320) {
+        s.stimer = 0;
+        s.spike = 8 + Math.random() * 14;
+      }
+      s.spike *= 0.92;
+      s.cur += (s.target - s.cur) * 0.028 + (Math.random() - 0.5) * 0.65;
       s.cur = Math.max(18, Math.min(90, s.cur));
-      const val = Math.min(93, s.cur + s.spike);
-      setDb(val);
-      setWave(prev => [...prev.slice(1), val]);
-    }, 55);
+      const instant = Math.min(93, s.cur + s.spike);
+      const instantWave = Array.from({ length: 44 }, (_, i) => {
+        const base = 20 + ((instant - 20) / 68) * 68;
+        return base + (Math.random() - 0.5) * 4;
+      });
+
+      s.smooth = smoothToward(s.smooth, instant, DISPLAY_DB_ALPHA);
+      s.smoothWave = smoothWaveArray(s.smoothWave, instantWave, DISPLAY_WAVE_ALPHA);
+
+      setInstantDb(instant);
+      setDb(s.smooth);
+      setWave([...s.smoothWave]);
+    }, 110);
     return () => clearInterval(id);
   }, []);
-  return { db, wave };
+
+  return { db, instantDb, wave };
 }
 
 const TICKS = Array.from({ length: 19 }, (_, i) => {
@@ -201,12 +263,12 @@ function Gauge({ db }) {
         strokeDasharray={`${Math.max(0, fill - 2)} ${CIRC - Math.max(0, fill - 2)}`}
         style={{
           transform: `rotate(${ROT}deg)`, transformOrigin: `${CX}px ${CY}px`,
-          transition: 'stroke-dasharray 0.28s ease, stroke 0.45s ease',
+          transition: 'stroke-dasharray 0.55s ease-out, stroke 0.6s ease',
           filter: `drop-shadow(0 0 8px ${st.color}) drop-shadow(0 0 16px ${st.color}44)`,
         }} />
       <circle cx={CX} cy={CY} r="84" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
       <circle cx={CX} cy={CY} r="79" fill="rgba(6,11,24,0.93)" />
-      <g style={{ transform: `rotate(${needleRot}deg)`, transformOrigin: `${CX}px ${CY}px`, transition: 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1)' }}>
+      <g style={{ transform: `rotate(${needleRot}deg)`, transformOrigin: `${CX}px ${CY}px`, transition: 'transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)' }}>
         <line x1={CX} y1={CY} x2={CX} y2={CY - 84} stroke={st.color} strokeWidth="6" strokeLinecap="round" opacity="0.12" filter="url(#glow2)" />
         <line x1={CX} y1={CY + 10} x2={CX} y2={CY - 82} stroke="url(#needleGrad)" strokeWidth="2.5" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 3px ${st.color})` }} />
         <circle cx={CX} cy={CY - 82} r="3.5" fill={st.color} filter="url(#glow3)" />
@@ -237,7 +299,7 @@ function Waveform({ wave, db }) {
             height: `${h}px`, background: st.color,
             opacity: 0.12 + age * 0.88,
             boxShadow: i >= wave.length - 4 ? `0 0 6px ${st.color}` : 'none',
-            transition: 'height 0.07s ease, background 0.4s ease',
+            transition: 'height 0.22s ease-out, background 0.5s ease',
           }} />
         );
       })}
@@ -273,22 +335,23 @@ export default function NoiseMeter() {
   const { playWarning } = useCalmSound();
 
   const useMic = mic.micStatus === 'active';
-  const db   = useMic ? mic.db   : sim.db;
+  const displayDb = useMic ? mic.db : sim.db;
+  const measuredDb = useMic ? mic.instantDb : sim.instantDb;
   const wave = useMic ? mic.wave : sim.wave;
-  const st   = getState(db);
+  const st = getState(displayDb);
 
   const dataRef = useRef({ samples: [42], peak: 42 });
-  const prevLabelRef = useRef(st.label);
+  const prevLabelRef = useRef(getState(measuredDb).label);
   const alertCooldownRef = useRef(0);
 
   useEffect(() => {
-    dataRef.current.samples.push(db);
+    dataRef.current.samples.push(measuredDb);
     if (dataRef.current.samples.length > 300) dataRef.current.samples.shift();
-    if (db > dataRef.current.peak) dataRef.current.peak = db;
-  }, [db]);
+    if (measuredDb > dataRef.current.peak) dataRef.current.peak = measuredDb;
+  }, [measuredDb]);
 
   useEffect(() => {
-    const label = getState(db).label;
+    const label = getState(measuredDb).label;
     const now = Date.now();
     if (
       label === 'LOUD' &&
@@ -300,7 +363,7 @@ export default function NoiseMeter() {
       alertCooldownRef.current = now;
     }
     prevLabelRef.current = label;
-  }, [db, playWarning]);
+  }, [measuredDb, playWarning]);
 
   const avg = Math.round(
     dataRef.current.samples.reduce((a, b) => a + b, 0) / dataRef.current.samples.length
@@ -329,15 +392,15 @@ export default function NoiseMeter() {
 
       <motion.div className="gauge-wrapper" variants={itemVars}>
         <div className="gauge-outer">
-          <Particles db={db} color={st.color} />
-          <Gauge db={db} />
+          <Particles db={displayDb} color={st.color} />
+          <Gauge db={displayDb} />
         </div>
-        <Waveform wave={wave} db={db} />
+        <Waveform wave={wave} db={displayDb} />
       </motion.div>
 
       <motion.div className="stats-row" variants={itemVars}>
         {[
-          { label: 'Current',      value: `${Math.round(db)} dB`,                  color: st.color  },
+          { label: 'Current',      value: `${Math.round(displayDb)} dB`,          color: st.color  },
           { label: 'Average',      value: `${avg} dB`,                              color: '#00E5B4' },
           { label: 'Session Peak', value: `${Math.round(dataRef.current.peak)} dB`, color: '#FFD93D' },
         ].map((s, i) => (

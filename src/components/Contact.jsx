@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCalmSound } from '../hooks/useCalmSound';
 import { MotionButton } from './motion';
+import WardenLogo from './WardenLogo';
 
 const containerVars = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } };
 const itemVars = {
@@ -70,7 +71,9 @@ export default function Contact() {
       {/* School info banner */}
       <motion.div className="glass-card contact-school-card" variants={itemVars}
         whileHover={{ y: -3, transition: { duration: 0.2 } }}>
-        <div className="contact-school-logo">🏫</div>
+        <div className="contact-school-logo">
+          <WardenLogo height={56} />
+        </div>
         <div>
           <div className="contact-school-name">Oshwal Academy Nairobi Junior High</div>
           <div className="contact-school-detail">📧 info@oshwal.ac.ke</div>

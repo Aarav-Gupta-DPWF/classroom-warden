@@ -5,6 +5,7 @@ import { MotionButton } from './motion';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import WardenLogo from './WardenLogo';
 
 const CLASSES = [
   { id: 1, name: 'Room 8A', teacher: 'Mr. Wakaba',   subject: 'Business Studies', streak: 7,  baseDb: 38 },
@@ -205,7 +206,9 @@ export default function Reports() {
       {/* Report preview card */}
       <motion.div className="glass-card report-preview" variants={itemVars}>
         <div className="report-preview-header">
-          <div className="report-preview-logo">📋</div>
+          <div className="report-preview-logo">
+            <WardenLogo height={48} />
+          </div>
           <div>
             <div className="report-preview-title">Monthly Noise Intelligence Report</div>
             <div className="report-preview-meta">Oshwal Academy Nairobi Junior High · May 2026</div>

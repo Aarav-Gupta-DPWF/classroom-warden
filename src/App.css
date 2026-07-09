@@ -101,45 +101,16 @@
   align-items: center;
   justify-content: center;
   cursor: default;
-  animation: float-up 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px rgba(0,229,180,0.35));
-  transition: filter 0.3s ease;
-  height: 58px;
+  flex-shrink: 0;
 }
 
-.logo-icon:hover {
-  filter: drop-shadow(0 0 18px rgba(0,229,180,0.7));
+.warden-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  user-select: none;
 }
-
-/* ── Traffic-light logo animations ── */
-.tl-red    { animation: tl-r 3.6s ease-in-out infinite; }
-.tl-yellow { animation: tl-y 3.6s ease-in-out 1.2s infinite; }
-.tl-green  { animation: tl-g 3.6s ease-in-out 2.4s infinite; }
-
-@keyframes tl-r {
-  0%,100% { opacity: 0.35; filter: drop-shadow(0 0 2px rgba(255,71,87,0.3)); }
-  50%     { opacity: 1;    filter: drop-shadow(0 0 9px rgba(255,71,87,0.95)); }
-}
-@keyframes tl-y {
-  0%,100% { opacity: 0.35; filter: drop-shadow(0 0 2px rgba(255,217,61,0.3)); }
-  50%     { opacity: 1;    filter: drop-shadow(0 0 9px rgba(255,217,61,0.95)); }
-}
-@keyframes tl-g {
-  0%,100% { opacity: 0.35; filter: drop-shadow(0 0 2px rgba(46,213,115,0.3)); }
-  50%     { opacity: 1;    filter: drop-shadow(0 0 9px rgba(46,213,115,0.95)); }
-}
-
-.tl-dot-r { animation: tl-r 3.6s ease-in-out infinite; }
-.tl-dot-y { animation: tl-y 3.6s ease-in-out 1.2s infinite; }
-.tl-dot-g { animation: tl-g 3.6s ease-in-out 2.4s infinite; }
-
-@keyframes tl-scan {
-  0%   { transform: translateY(0);  opacity: 0; }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { transform: translateY(40px); opacity: 0; }
-}
-.tl-scan { animation: tl-scan 4s ease-in-out infinite; }
 
 /* Title shimmer */
 .app-title {
@@ -281,6 +252,14 @@
   position: relative;
   z-index: 10;
   width: 100%;
+}
+
+.caa-module-wrap {
+  width: 100%;
+}
+
+.caa-module-wrap .caa-capture {
+  max-width: none;
 }
 
 /* ── Section header ── */
@@ -890,7 +869,11 @@
   background: linear-gradient(135deg, rgba(0,229,180,0.06), rgba(0,207,255,0.04));
   border-color: rgba(0,229,180,0.18);
 }
-.contact-school-logo { font-size: 36px; }
+.contact-school-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 .contact-school-name { font-size: 16px; font-weight: 700; color: #E8EAF0; margin-bottom: 4px; }
 .contact-school-detail { font-size: 13px; color: rgba(0,229,180,0.7); }
 
@@ -1015,7 +998,11 @@
 
 .report-preview { padding: 24px; margin-bottom: 20px; }
 .report-preview-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-.report-preview-logo { font-size: 36px; }
+.report-preview-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 .report-preview-title { font-size: 17px; font-weight: 700; color: #E8EAF0; margin-bottom: 3px; }
 .report-preview-meta { font-size: 12px; color: rgba(232,234,240,0.4); }
 .report-summary-row { display: flex; gap: 24px; flex-wrap: wrap; }
@@ -1059,7 +1046,8 @@
 }
 
 .audio-consent-icon {
-  font-size: 40px;
+  display: flex;
+  justify-content: center;
   margin-bottom: 12px;
 }
 
@@ -1132,4 +1120,21 @@
 .warden-engine-amb {
   color: rgba(0, 229, 180, 0.65);
   font-weight: 500;
+}
+
+.console-user-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(232, 234, 240, 0.65);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.console-user-pill:hover {
+  border-color: rgba(0, 229, 180, 0.35);
+  color: #00e5b4;
 }

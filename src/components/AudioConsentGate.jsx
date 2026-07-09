@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useAudioEngine } from '../context/AudioContext';
 import { MotionButton } from './motion';
+import WardenLogo from './WardenLogo';
 
 export default function AudioConsentGate() {
   const { audioUnlocked, unlockAudio } = useAudioEngine();
@@ -27,7 +28,9 @@ export default function AudioConsentGate() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="audio-consent-icon">🎧</div>
+        <div className="audio-consent-icon">
+          <WardenLogo height={56} />
+        </div>
         <h2 className="audio-consent-title">Calm Audio Experience</h2>
         <p className="audio-consent-copy">
           Gentle UI sounds and a soft ambient background help you stay focused.
